@@ -93,7 +93,6 @@
                 timerElement.style.display = 'none'; 
                 claimBtn.style.display = 'inline-block'; 
                 
-                // Haptic vibration feedback to let user know it's ready
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.notificationOccurred('success');
                 }
@@ -102,26 +101,41 @@
             }
         }, 1000);
 
-        // Monetag Link + Bot Redirect Flow
-        claimBtn.addEventListener('click', () => {
-            // Your Live Monetag Direct Link
-            const monetagLink = "https://omg10.com/4/11064175";
-            
-            // Open ad link in user's system browser
-            tg.openLink(monetagLink);
-            
-            // Dual-Layer Safety Net to catch file parameters correctly
-            let startParam = tg.initDataUnsafe?.start_param || "";
-            if (!startParam && window.location.search) {
-                const urlParams = new URLSearchParams(window.location.search);
-                startParam = urlParams.get('tgWebAppStartParam') || "";
+        // Extract Parameter across all entry points
+        function getPayloadParam() {
+            // 1. Try Telegram native start param
+            if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                return tg.initDataUnsafe.start_param;
             }
             
-            // Redirect back into the main bot chat carrying the dynamic payload strings
+            // 2. Parse fallback location URL options
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('tgWebAppStartParam') || 
+                   urlParams.get('start') || 
+                   urlParams.get('startapp') || 
+                   "";
+        }
+
+        // Monetag Link + Secure Parameter Return Flow
+        claimBtn.addEventListener('click', () => {
+            const monetagLink = "https://omg10.com/4/11064175";
+            
+            // Open the monetization page in system browser
+            tg.openLink(monetagLink);
+            
+            // Gather the tracked file token
+            const filePayload = getPayloadParam();
+            
+            // Route user back to bot WITH the file identifier payload attached
             setTimeout(() => {
-                tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
+                if (filePayload) {
+                    tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + filePayload);
+                } else {
+                    // Fail-safe if bot opened app without assigning parameters
+                    tg.openTelegramLink("https://t.me/GoogleBookxSearchBot");
+                }
                 tg.close();
-            }, 1000); 
+            }, 1200); 
         });
     </script>
 </body>
