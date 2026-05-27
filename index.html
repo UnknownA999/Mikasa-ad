@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikasa Verification</title>
+    <title>Mikasa Premium Access</title>
     
+    <!-- Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    
+
     <style>
         body {
-            /* Matches the user's Telegram theme automatically! */
-            background-color: var(--tg-theme-bg-color, #18222d);
-            color: var(--tg-theme-text-color, #ffffff);
+            background-color: #18222d;
+            color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -23,8 +22,8 @@
             text-align: center;
         }
         .btn {
-            background-color: var(--tg-theme-button-color, #2b9ed4);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background-color: #2b9ed4;
+            color: #ffffff;
             border: none;
             padding: 16px 32px;
             font-size: 18px;
@@ -33,80 +32,85 @@
             font-weight: bold;
             margin-top: 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s;
-            display: none; /* Hidden until AdsGram loads */
+            display: none; /* Hidden until timer finishes */
+            transition: transform 0.1s;
         }
         .btn:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
+        }
+        .timer-box {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f1c40f;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         #icon {
-            font-size: 50px;
+            font-size: 60px;
             margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <div id="icon">⏳</div>
-    <title>Mikasa Premium Rewards</title>
-    ...
-    <h2 id="status">Daily Bonus Available!</h2>
-    <p style="opacity: 0.7; max-width: 80%; font-size: 14px;">Watch a quick sponsor video to claim 2 hours of VIP access and priority delivery.</p>
+    <div id="icon">⚡</div>
+    <h2>Loading VIP File Stream</h2>
+    <p style="opacity: 0.7; max-width: 80%; font-size: 14px; margin-bottom: 5px;">
+        Please wait a moment while our sponsor network secures your priority download path...
+    </p>
     
-    <button id="watchBtn" class="btn">🎁 Claim VIP Bonus</button>
-
+    <!-- Countdown Timer Element -->
+    <div id="timer" class="timer-box">⏳ Initializing: 15s</div>
+    
+    <!-- Final Action Button -->
+    <button id="claimBtn" class="btn">🎁 Claim VIP Access</button>
 
     <script>
-        // 1. Initialize Telegram Mini App
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Make it full screen
+        tg.expand();
 
-        const statusText = document.getElementById('status');
-        const watchBtn = document.getElementById('watchBtn');
-        const icon = document.getElementById('icon');
+        let timeLeft = 15;
+        const timerElement = document.getElementById('timer');
+        const claimBtn = document.getElementById('claimBtn');
 
-        // 2. Initialize AdsGram with YOUR Block ID
-        const AdController = window.Adsgram.init({ blockId: "33046" });
+        // Start the automated countdown
+        const countdown = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerElement.style.display = 'none'; 
+                claimBtn.style.display = 'inline-block'; 
+                tg.HapticFeedback.notificationOccurred('success'); // Buzz phone when ready
+            } else {
+                timerElement.innerHTML = `⏳ Preparing Access: ${timeLeft}s`;
+            }
+        }, 1000);
 
-        // 3. What happens when the user FINISHES the ad
-        AdController.addEventListener('onReward', () => {
-            icon.innerText = "✅";
-            statusText.innerText = "Verified! Sending your files...";
+        // Monetag Link + Bot Redirect Flow
+        claimBtn.addEventListener('click', () => {
+            // Your Live Monetag Direct Link
+            const monetagLink = "https://omg10.com/4/11064175";
             
-            // Get the hidden verification code passed by your Python bot
+            // Open ad link in user's system browser
+            tg.openLink(monetagLink);
+            
+            // Extract the original file payload parameters
             let startParam = tg.initDataUnsafe?.start_param || "";
             
-            // Instantly redirect them back to the bot to get the file
-            tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
-            
-            // Close the Mini App automatically
+            // Bounce them straight back to the main bot conversation with file arguments
             setTimeout(() => {
+                tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
                 tg.close();
-            }, 1500);
-        });
-
-        // 4. What happens if the ad fails to load
-        AdController.addEventListener('onError', (err) => {
-            icon.innerText = "⚠️";
-            statusText.innerText = "Ad network error. Please try again.";
-            watchBtn.style.display = "block";
-            console.log("AdsGram Error:", err);
-        });
-
-        // 5. Setup the button
-        icon.innerText = "🎁";
-        statusText.innerText = "Ready to Unlock!";
-        watchBtn.style.display = "block";
-
-        watchBtn.addEventListener('click', () => {
-            watchBtn.style.display = "none";
-            icon.innerText = "🎬";
-            statusText.innerText = "Playing Video...";
-            AdController.show().catch((err) => {
-                icon.innerText = "⚠️";
-                statusText.innerText = "Error playing ad. Ensure you don't have an adblocker on.";
-                watchBtn.style.display = "block";
-            });
+            }, 1500); 
         });
     </script>
 </body>
