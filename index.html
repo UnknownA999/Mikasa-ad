@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikasa Premium Access</title>
     
-    <!-- Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Monetag SDK -->
     <script src='//libtl.com/sdk.js' data-zone='11064455' data-sdk='show_11064455'></script>
 
     <style>
         body {
             background-color: #18222d;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -44,9 +42,9 @@
 <body>
 
     <div id="icon">🔑</div>
-    <h2>VIP File Unlocked</h2>
+    <h2>VIP Access Ready</h2>
     <p style="opacity: 0.8; max-width: 80%; margin-bottom: 30px;">
-        Tap below to claim your access path.
+        Tap below to unlock your file.
     </p>
     
     <button id="claimBtn" class="btn">🎁 CLAIM ACCESS</button>
@@ -58,21 +56,21 @@
         const claimBtn = document.getElementById('claimBtn');
 
         claimBtn.addEventListener('click', () => {
-            // Use the Rewarded Popup format
+            // Trigger Rewarded Popup
             show_11064455('pop').then(() => {
                 
-                // Success: Get the payload and return to bot
+                // 1. Get the payload safely
                 const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
                 
-                tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
-                tg.close();
+                // 2. Navigate back to bot using a standard link
+                // This is the most reliable way to prevent the "reset to start" bug
+                window.location.href = `https://t.me/GoogleBookxSearchBot?start=${startParam}`;
                 
             }).catch(e => {
                 console.error("Ad error:", e);
-                // If ad fails, we still let them proceed to avoid frustrating the user
+                // Fail-safe: even if ad fails, user gets the file
                 const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
-                tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
-                tg.close();
+                window.location.href = `https://t.me/GoogleBookxSearchBot?start=${startParam}`;
             });
         });
     </script>
