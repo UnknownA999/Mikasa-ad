@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikasa Premium Access</title>
     
+    <!-- Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+    <!-- Monetag SDK -->
     <script src='//libtl.com/sdk.js' data-zone='11064455' data-sdk='show_11064455'></script>
 
     <style>
@@ -21,51 +23,56 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            user-select: none;
         }
         .btn {
-            background-color: #2b9ed4;
-            color: #ffffff;
+            background-color: #f1c40f;
+            color: #18222d;
             border: none;
-            padding: 16px 32px;
-            font-size: 18px;
-            border-radius: 12px;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
             transition: transform 0.1s;
         }
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: scale(0.95); }
         #icon { font-size: 80px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="icon">🎁</div>
-    <h2>VIP Access Ready</h2>
+    <div id="icon">🔑</div>
+    <h2>VIP File Unlocked</h2>
     <p style="opacity: 0.8; max-width: 80%; margin-bottom: 30px;">
-        Click below to unlock your file.
+        Tap below to claim your access path.
     </p>
     
-    <button id="claimBtn" class="btn">⚡ WATCH AD TO UNLOCK</button>
+    <button id="claimBtn" class="btn">🎁 CLAIM ACCESS</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // SDK Function: show_11064455()
         const claimBtn = document.getElementById('claimBtn');
 
         claimBtn.addEventListener('click', () => {
-            // Trigger the native SDK ad
-            show_11064455().then(() => {
-                // Success: Ad finished, proceed to delivery
+            // Use the Rewarded Popup format
+            show_11064455('pop').then(() => {
+                
+                // Success: Get the payload and return to bot
                 const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
                 
                 tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
                 tg.close();
-            }).catch((err) => {
-                console.error("Ad failed", err);
-                tg.showAlert("Please watch the ad to receive your files!");
+                
+            }).catch(e => {
+                console.error("Ad error:", e);
+                // If ad fails, we still let them proceed to avoid frustrating the user
+                const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
+                tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
+                tg.close();
             });
         });
     </script>
