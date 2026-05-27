@@ -20,6 +20,8 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .btn {
             background-color: #2b9ed4;
@@ -33,10 +35,11 @@
             margin-top: 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             display: none; /* Hidden until timer finishes */
-            transition: transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
         }
         .btn:active {
             transform: scale(0.96);
+            background-color: #248bba;
         }
         .timer-box {
             font-size: 22px;
@@ -89,7 +92,11 @@
                 clearInterval(countdown);
                 timerElement.style.display = 'none'; 
                 claimBtn.style.display = 'inline-block'; 
-                tg.HapticFeedback.notificationOccurred('success'); // Buzz phone when ready
+                
+                // Haptic vibration feedback to let user know it's ready
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
             } else {
                 timerElement.innerHTML = `⏳ Preparing Access: ${timeLeft}s`;
             }
@@ -103,14 +110,18 @@
             // Open ad link in user's system browser
             tg.openLink(monetagLink);
             
-            // Extract the original file payload parameters
+            // Dual-Layer Safety Net to catch file parameters correctly
             let startParam = tg.initDataUnsafe?.start_param || "";
+            if (!startParam && window.location.search) {
+                const urlParams = new URLSearchParams(window.location.search);
+                startParam = urlParams.get('tgWebAppStartParam') || "";
+            }
             
-            // Bounce them straight back to the main bot conversation with file arguments
+            // Redirect back into the main bot chat carrying the dynamic payload strings
             setTimeout(() => {
                 tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
                 tg.close();
-            }, 1500); 
+            }, 1000); 
         });
     </script>
 </body>
