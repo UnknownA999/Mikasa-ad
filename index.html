@@ -7,13 +7,13 @@
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <script src="//libtl.com/sdk.js" data-zone="11064455" data-sdk="show_11064455"></script>
+    <script src='//libtl.com/sdk.js' data-zone='11064455' data-sdk='show_11064455'></script>
 
     <style>
         body {
             background-color: #18222d;
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,50 +22,50 @@
             margin: 0;
             text-align: center;
         }
-        .timer-box { font-size: 22px; font-weight: bold; color: #f1c40f; margin-top: 20px; }
         .btn {
-            background-color: #2b9ed4; color: #ffffff; border: none; padding: 16px 32px;
-            font-size: 18px; border-radius: 12px; cursor: pointer; font-weight: bold;
-            margin-top: 25px; display: none;
+            background-color: #2b9ed4;
+            color: #ffffff;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
         }
+        .btn:active { transform: scale(0.96); }
+        #icon { font-size: 80px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <h2>⚡ Loading VIP Access</h2>
-    <div id="timer" class="timer-box">⏳ Preparing: 15s</div>
-    <button id="claimBtn" class="btn">🎁 Claim VIP Access</button>
+    <div id="icon">🎁</div>
+    <h2>VIP Access Ready</h2>
+    <p style="opacity: 0.8; max-width: 80%; margin-bottom: 30px;">
+        Click below to unlock your file.
+    </p>
+    
+    <button id="claimBtn" class="btn">⚡ WATCH AD TO UNLOCK</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let timeLeft = 15;
-        const timerElement = document.getElementById('timer');
+        // SDK Function: show_11064455()
         const claimBtn = document.getElementById('claimBtn');
 
-        const countdown = setInterval(() => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                timerElement.style.display = 'none';
-                claimBtn.style.display = 'inline-block';
-            } else {
-                timerElement.innerHTML = `⏳ Preparing Access: ${timeLeft}s`;
-            }
-        }, 1000);
-
         claimBtn.addEventListener('click', () => {
-            // This calls the native Monetag SDK ad overlay
+            // Trigger the native SDK ad
             show_11064455().then(() => {
-                // AD COMPLETE: Route back to bot with payload
-                const urlParams = new URLSearchParams(window.location.search);
-                const startParam = urlParams.get('tgWebAppStartParam') || "";
+                // Success: Ad finished, proceed to delivery
+                const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
                 
                 tg.openTelegramLink("https://t.me/GoogleBookxSearchBot?start=" + startParam);
                 tg.close();
             }).catch((err) => {
-                tg.showAlert("Please watch the full ad to unlock access!");
+                console.error("Ad failed", err);
+                tg.showAlert("Please watch the ad to receive your files!");
             });
         });
     </script>
