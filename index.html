@@ -58,22 +58,31 @@
         claimBtn.addEventListener('click', () => {
             // Trigger Native In-App Rewarded Interstitial
             show_11064455().then(() => {
-
+                // Change UI to show success
+                claimBtn.innerText = "✅ Verified! Sending File...";
+                claimBtn.style.backgroundColor = "#2ecc71"; // Green color
                 
-                // 1. Get the payload safely
                 const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
                 
-                // 2. Navigate back to bot using a standard link
-                // This is the most reliable way to prevent the "reset to start" bug
+                // Trigger the bot redirect
                 window.location.href = `https://t.me/GoogleBookxSearchBot?start=${startParam}`;
+                
+                // Force close the mini app after half a second to reveal the chat
+                setTimeout(() => {
+                    tg.close();
+                }, 500);
                 
             }).catch(e => {
                 console.error("Ad error:", e);
-                // Fail-safe: even if ad fails, user gets the file
                 const startParam = new URLSearchParams(window.location.search).get('startapp') || "";
                 window.location.href = `https://t.me/GoogleBookxSearchBot?start=${startParam}`;
+                
+                setTimeout(() => {
+                    tg.close();
+                }, 500);
             });
         });
     </script>
+
 </body>
 </html>
