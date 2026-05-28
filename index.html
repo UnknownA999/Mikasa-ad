@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bot Verification Portal</title>
+    <title>Mikasa Verification Portal</title>
     
-    <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- Monetag Vignette Ad -->
+    <!-- Monetag Vignette Ad (Will fire instantly in Chrome/Safari) -->
     <script>(function(s){s.dataset.zone='11068939',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
     <style>
@@ -138,8 +135,9 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        // Extract the unique file parameter passed by your Python bot (e.g., ?start=XYZ123)
+        const urlParams = new URLSearchParams(window.location.search);
+        let startParam = urlParams.get('start') || urlParams.get('startapp') || "";
 
         let timeLeft = 30;
         const countdownEl = document.getElementById('countdown');
@@ -160,9 +158,10 @@
             }
         }, 1000);
 
-        // Native exit link to snap back into the direct message stream
+        // Deep link execution to force the phone to open the Telegram App back to your bot
         closeBtn.addEventListener('click', () => {
-            tg.close();
+            // Redirects to GoogleBookxSearchBot with the exact file parameter
+            window.location.href = `tg://resolve?domain=GoogleBookxSearchBot&start=${startParam}`;
         });
     </script>
 </body>
