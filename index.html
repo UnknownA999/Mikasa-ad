@@ -8,8 +8,8 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Monetag Script Layer (Zone: 11064455) -->
-    <script src='//libtl.com/sdk.js' data-zone='11068850' data-sdk='show_11068850'></script>
+    <!-- Monetag Vignette Ad -->
+    <script>(function(s){s.dataset.zone='11068939',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
     <style>
         body {
@@ -35,6 +35,7 @@
             width: 100%;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            margin-bottom: 60px; /* Leaves space for the bottom banner */
         }
         .icon-shield {
             font-size: 64px;
@@ -82,6 +83,21 @@
         .btn-claim:active {
             background: #16a34a;
         }
+        /* Sticky Container for the Banner Ad */
+        .banner-ad-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f172a;
+            padding: 5px 0;
+            border-top: 1px solid #334155;
+            z-index: 9999;
+            min-height: 50px;
+        }
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -116,6 +132,11 @@
         </div>
     </div>
 
+    <!-- Monetag Banner Ad -->
+    <div class="banner-ad-container">
+        <script>(function(s){s.dataset.zone='11068936',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -126,13 +147,6 @@
         const portalView = document.getElementById('portalView');
         const successBox = document.getElementById('successBox');
         const closeBtn = document.getElementById('closeBtn');
-
-        // Instantly force Monetag's Vignette Banner or Push Overlay to load on open
-        try {
-            show_11068850();
-        } catch(e) {
-            console.log("Ad script tracking operational.");
-        }
 
         // 30-Second Tracking Loop
         const interval = setInterval(() => {
