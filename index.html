@@ -64,14 +64,15 @@
       display: flex;
       flex-direction: column;
       min-height: 100%;
+      padding-top: 130px; /* Pushes app down to make room for Monetag's double ads */
       padding-bottom: calc(var(--ad-height) + 12px);
     }
 
     /* ── Header ── */
     .header {
       position: sticky;
-      top: 0;
-      z-index: 40;
+      top: 130px; /* Sticks right below the Monetag ads so it never overlaps */
+      z-index: 2147483647; /* Maximum z-index so nothing can ever block the search bar */
       background: rgba(15,17,23,0.92);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
