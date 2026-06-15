@@ -64,15 +64,14 @@
       display: flex;
       flex-direction: column;
       min-height: 100%;
-      padding-top: 130px; /* Pushes app down to make room for Monetag's double ads */
       padding-bottom: calc(var(--ad-height) + 12px);
     }
 
     /* ── Header ── */
     .header {
       position: sticky;
-      top: 130px; /* Sticks right below the Monetag ads so it never overlaps */
-      z-index: 2147483647; /* Maximum z-index so nothing can ever block the search bar */
+      top: 0;
+      z-index: 40;
       background: rgba(15,17,23,0.92);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -665,7 +664,7 @@
         <h3>Book Not in Database</h3>
         <p>We don't have this title yet — but our collection grows every day!<br/>
            Request it and we'll add it soon.</p>
-        <a class="cta-btn cta-primary" href="https://t.me/mikasa_request_channel" target="_blank" rel="noopener">
+        <a class="cta-btn cta-primary" href="https://t.me/request_mikasa" target="_blank" rel="noopener">
           📝 &nbsp;Request This Book
         </a>
       </div>
@@ -952,4 +951,3 @@
   </script>
 </body>
 </html>
- 
