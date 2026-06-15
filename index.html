@@ -3,595 +3,546 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Mikasa Book Library</title>
+  <title>Book Library</title>
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- Interstitial Ad SDK (fires before download) -->
+  <!-- Interstitial Ad SDK -->
   <script src="//libtl.com/sdk.js" data-zone="11064455" data-sdk="show_11064455"></script>
 
-  <!-- Google Fonts: Playfair Display (literary display) + Inter (UI) -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* ═══════════════════════════════════════════
-       DESIGN TOKENS
-    ═══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       TOKENS>
+    ══════════════════════════════════════════ */
     :root {
-      --bg:          #0F1117;
-      --surface:     #1A1D27;
-      --surface-2:   #22263A;
-      --border:      #2A2D3E;
-      --gold:        #C9A84C;
-      --gold-light:  #E2C474;
-      --gold-dim:    rgba(201,168,76,0.15);
-      --text-primary:#F0EDE6;
-      --text-sec:    #9A97A8;
-      --text-muted:  #5C5A6E;
-      --danger:      #FF6B6B;
-      --radius-card: 16px;
-      --radius-btn:  10px;
-      --shadow-card: 0 4px 32px rgba(0,0,0,0.45);
-      --ad-height:   60px;
-      --font-display:'Playfair Display', Georgia, serif;
-      --font-ui:     'Inter', system-ui, sans-serif;
-      --transition:  0.22s cubic-bezier(0.4,0,0.2,1);
+      --bg:           #0F1117;
+      --surface:      #1A1D27;
+      --surface-2:    #22263A;
+      --border:       #2A2D3E;
+      --gold:         #C9A84C;
+      --gold-light:   #E2C474;
+      --gold-dim:     rgba(201,168,76,0.14);
+      --gold-glow:    rgba(201,168,76,0.22);
+      --text-1:       #F0EDE6;
+      --text-2:       #9A97A8;
+      --text-3:       #5C5A6E;
+      --ad-h:         60px;
+      --r-card:       16px;
+      --r-btn:        12px;
+      --font-d:       'Playfair Display', Georgia, serif;
+      --font-u:       'Inter', system-ui, sans-serif;
+      --ease:         0.22s cubic-bezier(.4,0,.2,1);
     }
 
-    /* ═══════════════════════════════════════════
-       RESET & BASE
-    ═══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       RESET
+    ══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       height: 100%;
       background: var(--bg);
-      color: var(--text-primary);
-      font-family: var(--font-ui);
+      color: var(--text-1);
+      font-family: var(--font-u);
       font-size: 15px;
       line-height: 1.5;
       overscroll-behavior: none;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ═══════════════════════════════════════════
-       LAYOUT SHELL
-    ═══════════════════════════════════════════ */
-    #app {
+    /* ══════════════════════════════════════════
+       PAGE SYSTEM  (search-page / detail-page)
+    ══════════════════════════════════════════ */
+    .page {
+      position: fixed;
+      inset: 0;
+      top: 130px; /* 👈 Creates a dedicated "Billboard" spot at the top for ads */
+      bottom: 0;  /* 👈 Frees up the bottom screen space */
       display: flex;
       flex-direction: column;
-      min-height: 100%;
-      padding-bottom: calc(var(--ad-height) + 12px);
+      overflow: hidden;
+      background: var(--bg);
+      transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s ease;
     }
 
-    /* ── Header ── */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: rgba(15,17,23,0.92);
+
+    .page.hidden-right  { transform: translateX(100%); opacity: 0; pointer-events: none; }
+    .page.hidden-left   { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+
+    /* ══════════════════════════════════════════
+       SEARCH PAGE — HEADER
+    ══════════════════════════════════════════ */
+    .s-header {
+      flex-shrink: 0;
+      background: rgba(15,17,23,0.94);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
-      padding: 14px 18px 12px;
+      padding: 14px 16px 12px;
     }
 
-    .header-brand {
+    .brand-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .brand-icon {
-      width: 34px;
-      height: 34px;
+      width: 34px; height: 34px;
       background: var(--gold-dim);
       border: 1px solid var(--gold);
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
     }
 
     .brand-text h1 {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: 0.01em;
+      font-family: var(--font-d);
+      font-size: 17px; font-weight: 700;
+      color: var(--text-1); letter-spacing: .01em;
     }
 
     .brand-text p {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      font-size: 11px; color: var(--text-3);
+      font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
     }
 
-    /* ── Search Bar ── */
-    .search-wrap {
-      position: relative;
-    }
+    .search-wrap { position: relative; }
 
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 16px;
-      pointer-events: none;
-      transition: color var(--transition);
+    .search-wrap .ico {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-3); font-size: 16px; pointer-events: none;
+      transition: color var(--ease);
     }
 
     #searchInput {
-      width: 100%;
-      height: 46px;
+      width: 100%; height: 46px;
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: 12px;
-      padding: 0 44px 0 42px;
-      color: var(--text-primary);
-      font-family: var(--font-ui);
-      font-size: 15px;
-      font-weight: 400;
+      padding: 0 42px 0 42px;
+      color: var(--text-1);
+      font-family: var(--font-u); font-size: 15px;
       outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--ease), box-shadow var(--ease);
     }
 
-    /* Signature element: gilded glow on focus */
     #searchInput:focus {
       border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201,168,76,0.18), 0 0 18px rgba(201,168,76,0.08);
+      box-shadow: 0 0 0 3px var(--gold-glow), 0 0 20px rgba(201,168,76,.07);
     }
 
-    #searchInput:focus + .search-icon,
-    .search-wrap:focus-within .search-icon { color: var(--gold); }
-
-    #searchInput::placeholder { color: var(--text-muted); }
+    .search-wrap:focus-within .ico { color: var(--gold); }
+    #searchInput::placeholder { color: var(--text-3); }
 
     .clear-btn {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 18px;
-      display: none;
-      padding: 4px;
-      line-height: 1;
-      transition: color var(--transition);
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-3);
+      cursor: pointer; font-size: 17px; padding: 4px; line-height: 1;
+      display: none; transition: color var(--ease);
     }
-    .clear-btn:hover { color: var(--text-primary); }
-    .clear-btn.visible { display: block; }
+    .clear-btn.vis { display: block; }
+    .clear-btn:hover { color: var(--text-1); }
 
-    /* ═══════════════════════════════════════════
-       MAIN CONTENT
-    ═══════════════════════════════════════════ */
-    main {
-      flex: 1;
-      padding: 20px 14px;
+    /* ══════════════════════════════════════════
+       SEARCH PAGE — SCROLL BODY
+    ══════════════════════════════════════════ */
+    .s-body {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 18px 14px 12px;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* ── States ── */
-    .state {
-      display: none;
-      text-align: center;
-    }
-    .state.active { display: block; }
+    /* States */
+    .state { display: none; text-align: center; }
+    .state.on { display: block; }
 
-    /* Welcome state */
-    .welcome-state {
-      padding: 40px 20px;
+    /* Welcome */
+    .welcome { padding: 32px 16px; }
+    .w-emoji {
+      font-size: 50px; display: block; margin-bottom: 14px;
+      filter: drop-shadow(0 2px 12px rgba(201,168,76,.28));
     }
-
-    .welcome-emoji {
-      font-size: 52px;
-      display: block;
-      margin-bottom: 16px;
-      filter: drop-shadow(0 2px 12px rgba(201,168,76,0.25));
+    .welcome h2 {
+      font-family: var(--font-d); font-size: 22px; font-weight: 700;
+      margin-bottom: 8px; letter-spacing: .01em;
     }
+    .welcome p { font-size: 14px; color: var(--text-2); line-height: 1.65; max-width: 270px; margin: 0 auto 22px; }
 
-    .welcome-state h2 {
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 10px;
-      letter-spacing: 0.01em;
-    }
-
-    .welcome-state p {
-      font-size: 14px;
-      color: var(--text-sec);
-      line-height: 1.6;
-      max-width: 280px;
-      margin: 0 auto 24px;
-    }
-
-    .genre-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-    }
-
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
     .chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: var(--text-sec);
-      cursor: pointer;
-      transition: border-color var(--transition), color var(--transition), background var(--transition);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; color: var(--text-2); cursor: pointer;
+      transition: border-color var(--ease), color var(--ease), background var(--ease);
       -webkit-tap-highlight-color: transparent;
     }
+    .chip:active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
 
-    .chip:hover, .chip:active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: var(--gold-dim);
+    /* Loading */
+    .loading-st { padding: 60px 16px; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 14px;
     }
-
-    /* Loading state */
-    .loading-state { padding: 60px 20px; }
-
-    .loader {
-      width: 36px;
-      height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      margin: 0 auto 16px;
-    }
-
     @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-st p { color: var(--text-2); font-size: 14px; }
 
-    .loading-state p {
-      color: var(--text-sec);
-      font-size: 14px;
+    /* Empty */
+    .empty-st { padding: 44px 16px; }
+    .empty-st .big { font-size: 46px; display: block; margin-bottom: 14px; opacity: .75; }
+    .empty-st h3 { font-family: var(--font-d); font-size: 20px; margin-bottom: 8px; }
+    .empty-st p { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 22px; }
+
+    /* Error */
+    .error-st { padding: 44px 16px; }
+    .error-st .big { font-size: 40px; display: block; margin-bottom: 12px; }
+    .error-st h3 { font-size: 17px; margin-bottom: 6px; }
+    .error-st p { font-size: 13px; color: var(--text-2); margin-bottom: 18px; }
+
+    /* Results header */
+    .res-hdr {
+      display: none; align-items: center; margin-bottom: 14px;
     }
+    .res-hdr.vis { display: flex; }
+    .res-count { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); }
+    .res-count span { color: var(--gold); }
 
-    /* Empty / Not found state */
-    .empty-state { padding: 48px 20px; }
+    /* ══════════════════════════════════════════
+       SEARCH RESULT CARDS  (compact)
+    ══════════════════════════════════════════ */
+    #results { display: flex; flex-direction: column; gap: 12px; }
 
-    .empty-icon {
-      font-size: 48px;
-      display: block;
-      margin-bottom: 16px;
-      opacity: 0.7;
-    }
-
-    .empty-state h3 {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .empty-state p {
-      font-size: 14px;
-      color: var(--text-sec);
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    /* Error state */
-    .error-state { padding: 48px 20px; }
-    .error-icon { font-size: 40px; display: block; margin-bottom: 14px; }
-    .error-state h3 { font-size: 17px; color: var(--text-primary); margin-bottom: 6px; }
-    .error-state p { font-size: 13px; color: var(--text-sec); margin-bottom: 18px; }
-
-    /* ═══════════════════════════════════════════
-       RESULTS HEADER
-    ═══════════════════════════════════════════ */
-    .results-header {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .results-header.visible { display: flex; }
-
-    .results-count {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-    }
-
-    .results-count span {
-      color: var(--gold);
-    }
-
-    /* ═══════════════════════════════════════════
-       BOOK CARDS
-    ═══════════════════════════════════════════ */
-    #results {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .book-card {
+    .r-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      overflow: hidden;
-      box-shadow: var(--shadow-card);
-      animation: fadeUp 0.3s ease both;
+      border-radius: var(--r-card);
+      display: flex; align-items: stretch;
+      overflow: hidden; cursor: pointer;
+      box-shadow: 0 2px 18px rgba(0,0,0,.35);
+      animation: fadeUp .28s ease both;
+      transition: border-color var(--ease), box-shadow var(--ease);
+      -webkit-tap-highlight-color: transparent;
     }
+    .r-card:active { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-dim); }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .card-inner {
-      display: flex;
-      gap: 0;
+    .r-cover {
+      width: 72px; min-width: 72px; height: 110px;
+      background: var(--surface-2); overflow: hidden; position: relative;
+      border-right: 1px solid var(--border); flex-shrink: 0;
+    }
+    .r-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .r-cover-ph {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px;
+      font-size: 22px; color: var(--text-3);
+    }
+    .r-cover-ph small { font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+
+    .r-info {
+      flex: 1; padding: 12px 14px; display: flex; flex-direction: column;
+      gap: 4px; min-width: 0;
+    }
+    .r-title {
+      font-family: var(--font-d); font-size: 14px; font-weight: 700;
+      line-height: 1.3; color: var(--text-1);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .r-author { font-size: 12px; font-weight: 600; color: var(--gold); }
+    .r-snip {
+      font-size: 12px; color: var(--text-2); line-height: 1.5; margin-top: 2px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .r-arrow {
+      flex-shrink: 0; display: flex; align-items: center;
+      padding: 0 12px 0 6px; color: var(--text-3); font-size: 16px;
     }
 
-    /* ── Cover ── */
-    .cover-wrap {
-      width: 96px;
-      min-width: 96px;
-      height: 148px;
-      background: var(--surface-2);
-      position: relative;
-      overflow: hidden;
+    /* ══════════════════════════════════════════
+       DETAIL PAGE
+    ══════════════════════════════════════════ */
+    .d-header {
       flex-shrink: 0;
-      border-right: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(15,17,23,0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 16px;
     }
 
-    .cover-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.35s ease;
-    }
-
-    .book-card:hover .cover-wrap img { transform: scale(1.04); }
-
-    .cover-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 28px;
-      color: var(--text-muted);
-    }
-
-    .cover-placeholder small {
-      font-size: 9px;
-      font-family: var(--font-ui);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    /* ── Card body ── */
-    .card-body {
-      flex: 1;
-      padding: 14px 14px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0; /* prevent overflow */
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-author {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 0.02em;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-synopsis {
-      font-size: 12px;
-      color: var(--text-sec);
-      line-height: 1.55;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      flex: 1;
-    }
-
-    /* ── Card actions ── */
-    .card-actions {
-      padding: 0 14px 14px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn {
-      flex: 1;
-      height: 38px;
-      border-radius: var(--radius-btn);
-      border: none;
-      cursor: pointer;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      text-decoration: none;
-      transition: background var(--transition), transform var(--transition), opacity var(--transition);
+    .back-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 9px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; cursor: pointer; flex-shrink: 0;
+      transition: border-color var(--ease), background var(--ease);
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
+    }
+    .back-btn:active { border-color: var(--gold); background: var(--gold-dim); }
+
+    .d-header-title {
+      font-family: var(--font-d); font-size: 15px; font-weight: 700;
+      color: var(--text-1); line-height: 1.2;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
     }
 
-    .btn:active { transform: scale(0.96); }
-
-    .btn-download {
-      background: var(--gold);
-      color: #0F1117;
+    .d-body {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .btn-download:hover { background: var(--gold-light); }
-
-    .btn-download.loading {
-      opacity: 0.7;
-      pointer-events: none;
+    /* Hero cover section */
+    .d-hero {
+      position: relative;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 16px;
+      padding: 20px 16px;
+      overflow: hidden;
     }
 
-    .btn-buy {
-      background: var(--surface-2);
+    /* Blurred cover background for atmosphere */
+    .d-hero-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      filter: blur(28px) brightness(0.25) saturate(1.5);
+      transform: scale(1.1);
+      z-index: 0;
+    }
+
+    .d-cover-wrap {
+      position: relative; z-index: 1;
+      width: 100px; min-width: 100px; height: 148px;
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,.65);
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .d-cover-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .d-cover-ph {
+      width: 100%; height: 100%; background: var(--surface-2);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 6px;
+      font-size: 30px; color: var(--text-3);
+    }
+
+    .d-meta {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+      min-width: 0;
+    }
+
+    .d-title {
+      font-family: var(--font-d); font-size: 18px; font-weight: 700;
+      line-height: 1.25; color: var(--text-1);
+    }
+
+    .d-author {
+      font-size: 13px; font-weight: 600; color: var(--gold);
+    }
+
+    .d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .badge {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px; padding: 3px 8px;
+      font-size: 11px; color: var(--text-2); font-weight: 500;
+    }
+
+    /* Synopsis section */
+    .d-section { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    .d-section-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-3); margin-bottom: 10px;
+    }
+    .d-synopsis {
+      font-size: 14px; color: var(--text-2); line-height: 1.7;
+    }
+    .synopsis-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+    .read-more-btn {
+      background: none; border: none; color: var(--gold);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      padding: 6px 0 0; display: block;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ══════════════════════════════════════════
+       DOWNLOAD SECTION  (the money zone)
+    ══════════════════════════════════════════ */
+    .d-download-section {
+      padding: 20px 16px 24px;
+    }
+
+    /* Countdown ring */
+    .countdown-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin-bottom: 20px;
+    }
+
+    .countdown-ring-wrap {
+      position: relative; width: 80px; height: 80px;
+    }
+
+    .countdown-ring {
+      width: 80px; height: 80px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none; stroke: var(--border); stroke-width: 5;
+    }
+
+    .ring-fill {
+      fill: none; stroke: var(--gold); stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 220;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke var(--ease);
+    }
+
+    .ring-fill.done { stroke: #4CAF7D; }
+
+    .countdown-num {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-d); font-size: 26px; font-weight: 700;
+      color: var(--gold);
+    }
+    .countdown-num.done { color: #4CAF7D; font-size: 28px; }
+
+    .countdown-label {
+      font-size: 13px; color: var(--text-2); font-weight: 500; text-align: center;
+    }
+
+    /* Preparing message */
+    .preparing-msg {
+      background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-sec);
+      border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex; align-items: flex-start; gap: 10px;
     }
+    .preparing-msg .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .preparing-msg p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+    .preparing-msg strong { color: var(--text-1); font-weight: 600; }
 
-    .btn-buy:hover {
-      border-color: var(--gold);
-      color: var(--gold);
-    }
-
-    /* ═══════════════════════════════════════════
-       CTA BUTTONS (empty state, error)
-    ═══════════════════════════════════════════ */
-    .cta-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 0 24px;
-      height: 46px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-family: var(--font-ui);
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
+    /* Download button */
+    .dl-btn {
+      width: 100%; height: 54px;
+      border-radius: var(--r-btn);
+      border: none; cursor: pointer;
+      font-family: var(--font-u); font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background var(--ease), transform var(--ease), opacity var(--ease), box-shadow var(--ease);
       -webkit-tap-highlight-color: transparent;
-      transition: background var(--transition), transform var(--transition);
+      letter-spacing: .01em;
     }
 
-    .cta-btn:active { transform: scale(0.97); }
+    .dl-btn.locked {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      color: var(--text-3); cursor: not-allowed;
+    }
 
-    .cta-primary {
+    .dl-btn.unlocked {
       background: var(--gold);
       color: #0F1117;
+      box-shadow: 0 4px 24px rgba(201,168,76,.35);
+    }
+    .dl-btn.unlocked:active { transform: scale(0.97); box-shadow: none; }
+
+    .dl-btn.processing {
+      background: var(--gold-dim);
+      border: 1.5px solid var(--gold);
+      color: var(--gold); cursor: not-allowed;
     }
 
-    .cta-secondary {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      color: var(--text-sec);
+    /* Buy paperback link */
+    .buy-link {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      margin-top: 14px; padding: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; text-decoration: none;
+      color: var(--text-2); font-size: 14px; font-weight: 500;
+      transition: border-color var(--ease), color var(--ease);
+      -webkit-tap-highlight-color: transparent;
     }
+    .buy-link:active { border-color: var(--gold); color: var(--gold); }
 
-    /* ═══════════════════════════════════════════
-       GOLD DIVIDER
-    ═══════════════════════════════════════════ */
-    .gold-line {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      opacity: 0.35;
-      margin: 0 14px;
+    /* ══════════════════════════════════════════
+       CTA BUTTONS (shared)
+    ══════════════════════════════════════════ */
+    .cta {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0 24px; height: 46px; border-radius: 12px;
+      border: none; cursor: pointer;
+      font-family: var(--font-u); font-size: 15px; font-weight: 600;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background var(--ease), transform var(--ease);
     }
+    .cta:active { transform: scale(0.97); }
+    .cta-gold { background: var(--gold); color: #0F1117; }
+    .cta-ghost { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-2); }
 
-    /* ═══════════════════════════════════════════
+    /* ══════════════════════════════════════════
        STICKY BANNER AD
-    ═══════════════════════════════════════════ */
+    ══════════════════════════════════════════ */
     #ad-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: var(--ad-height);
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      /* We make this invisible because Monetag forces its own ads to the top of the page anyway */
+      position: absolute;
+      width: 0; height: 0;
       overflow: hidden;
+      visibility: hidden;
     }
 
-    /* ═══════════════════════════════════════════
-       TOAST NOTIFICATION
-    ═══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════ */
     #toast {
       position: fixed;
-      bottom: calc(var(--ad-height) + 14px);
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-primary);
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      z-index: 200;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      bottom: calc(var(--ad-h) + 14px); left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 20px;
+      font-size: 13px; font-weight: 500; color: var(--text-1);
+      white-space: nowrap; pointer-events: none; opacity: 0;
+      z-index: 10000;
+      transition: opacity .25s ease, transform .25s ease;
     }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    /* ══════════════════════════════════════════
+       STAGGER
+    ══════════════════════════════════════════ */
+    .r-card:nth-child(1) { animation-delay: .02s; }
+    .r-card:nth-child(2) { animation-delay: .07s; }
+    .r-card:nth-child(3) { animation-delay: .12s; }
+    .r-card:nth-child(4) { animation-delay: .17s; }
+    .r-card:nth-child(5) { animation-delay: .22s; }
 
-    /* ═══════════════════════════════════════════
-       ANIMATION STAGGER
-    ═══════════════════════════════════════════ */
-    .book-card:nth-child(1) { animation-delay: 0.02s; }
-    .book-card:nth-child(2) { animation-delay: 0.07s; }
-    .book-card:nth-child(3) { animation-delay: 0.12s; }
-    .book-card:nth-child(4) { animation-delay: 0.17s; }
-    .book-card:nth-child(5) { animation-delay: 0.22s; }
-
-    /* ═══════════════════════════════════════════
-       ACCESSIBILITY
-    ═══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       A11Y
+    ══════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
-
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-
-    /* ═══════════════════════════════════════════
-       SCROLLBAR STYLING
-    ═══════════════════════════════════════════ */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -599,355 +550,504 @@
 </head>
 
 <body>
-  <div id="app">
 
-    <!-- ═════════ HEADER ═════════ -->
-    <header class="header">
-      <div class="header-brand">
+  <!-- ══════════════════════════════════════════
+       PAGE 1 — SEARCH
+  ══════════════════════════════════════════ -->
+  <div id="searchPage" class="page">
+
+    <header class="s-header">
+      <div class="brand-row">
         <div class="brand-icon">📚</div>
         <div class="brand-text">
-          <h1>Mikasa Book Library</h1>
-          <p>Thousands of titles · Instant access</p>
+          <h1>Book Library</h1>
+          <p>Thousands of titles · Free access</p>
         </div>
       </div>
       <div class="search-wrap">
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Search by title or author…"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-          aria-label="Search books"
-        />
-        <span class="search-icon" aria-hidden="true">🔍</span>
-        <button class="clear-btn" id="clearBtn" aria-label="Clear search">✕</button>
+        <input id="searchInput" type="search" placeholder="Search by title or author…"
+               autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search books" />
+        <span class="ico" aria-hidden="true">🔍</span>
+        <button class="clear-btn" id="clearBtn" aria-label="Clear">✕</button>
       </div>
     </header>
 
-    <!-- ═════════ MAIN ═════════ -->
-    <main>
-
-      <!-- Results count bar -->
-      <div class="results-header" id="resultsHeader" aria-live="polite">
-        <span class="results-count" id="resultsCount"></span>
+    <div class="s-body">
+      <!-- Results bar -->
+      <div class="res-hdr" id="resHdr">
+        <span class="res-count" id="resCount"></span>
       </div>
 
-      <!-- ── Welcome ── -->
-      <div class="state welcome-state active" id="stateWelcome">
-        <span class="welcome-emoji">✨</span>
-        <h2>Find Your Next Read</h2>
-        <p>Search our entire catalogue — novels, textbooks, classics, and more. All free to download.</p>
-        <div class="genre-chips" role="list" aria-label="Quick search suggestions">
-          <button class="chip" role="listitem" onclick="quickSearch('Harry Potter')">⚡ Harry Potter</button>
-          <button class="chip" role="listitem" onclick="quickSearch('The Alchemist')">🧭 The Alchemist</button>
-          <button class="chip" role="listitem" onclick="quickSearch('George Orwell')">🌏 George Orwell</button>
-          <button class="chip" role="listitem" onclick="quickSearch('Sherlock Holmes')">🔎 Sherlock Holmes</button>
-          <button class="chip" role="listitem" onclick="quickSearch('Stephen King')">👁 Stephen King</button>
+      <!-- Welcome -->
+      <div class="state welcome on" id="stWelcome">
+        <div class="welcome">
+          <span class="w-emoji">✨</span>
+          <h2>Find Your Next Read</h2>
+          <p>Search our entire catalogue — novels, textbooks, classics, and more. All free.</p>
+          <div class="chips" role="list">
+            <button class="chip" onclick="quickSearch('Harry Potter')">⚡ Harry Potter</button>
+            <button class="chip" onclick="quickSearch('The Alchemist')">🧭 The Alchemist</button>
+            <button class="chip" onclick="quickSearch('George Orwell')">🌏 George Orwell</button>
+            <button class="chip" onclick="quickSearch('Sherlock Holmes')">🔎 Sherlock Holmes</button>
+            <button class="chip" onclick="quickSearch('Stephen King')">👁 Stephen King</button>
+          </div>
         </div>
       </div>
 
-      <!-- ── Loading ── -->
-      <div class="state loading-state" id="stateLoading" aria-live="assertive" aria-label="Searching…">
-        <div class="loader" role="progressbar"></div>
+      <!-- Loading -->
+      <div class="state loading-st" id="stLoading" aria-live="assertive">
+        <div class="spinner"></div>
         <p>Searching the library…</p>
       </div>
 
-      <!-- ── Results ── -->
-      <div id="stateResults">
+      <!-- Results -->
+      <div id="stResults" style="display:none">
         <div id="results" role="list" aria-label="Search results"></div>
       </div>
 
-      <!-- ── Empty / Not Found ── -->
-      <div class="state empty-state" id="stateEmpty">
-        <span class="empty-icon">📭</span>
+      <!-- Empty -->
+      <div class="state empty-st" id="stEmpty">
+        <span class="big">📭</span>
         <h3>Book Not in Database</h3>
-        <p>We don't have this title yet — but our collection grows every day!<br/>
-           Request it and we'll add it soon.</p>
-        <a class="cta-btn cta-primary" href="https://t.me/request_mikasa" target="_blank" rel="noopener">
-          📝 &nbsp;Request This Book
-        </a>
+        <p>We don't have this title yet — but our collection grows every day. Request it and we'll add it soon!</p>
+        <a class="cta cta-gold" href="https://t.me/request_mikasa" target="_blank" rel="noopener">📝 &nbsp;Request This Book</a>
       </div>
 
-      <!-- ── Error ── -->
-      <div class="state error-state" id="stateError">
-        <span class="error-icon">⚠️</span>
+      <!-- Error -->
+      <div class="state error-st" id="stError">
+        <span class="big">⚠️</span>
         <h3>Something went wrong</h3>
-        <p id="errorMsg">Could not connect to the server. Please try again.</p>
-        <button class="cta-btn cta-secondary" onclick="retrySearch()">🔄 &nbsp;Retry</button>
+        <p id="errMsg">Could not connect. Please try again.</p>
+        <button class="cta cta-ghost" onclick="retrySearch()">🔄 &nbsp;Retry</button>
       </div>
+    </div>
+  </div><!-- /searchPage -->
 
-    </main>
 
-  </div><!-- /#app -->
+  <!-- ══════════════════════════════════════════
+       PAGE 2 — BOOK DETAIL
+  ══════════════════════════════════════════ -->
+  <div id="detailPage" class="page hidden-right">
 
-  <!-- ═════════ TOAST ═════════ -->
+    <header class="d-header">
+      <button class="back-btn" id="backBtn" aria-label="Back to search">‹</button>
+      <span class="d-header-title" id="dHeaderTitle">Book Details</span>
+    </header>
+
+    <div class="d-body" id="dBody">
+      <!-- injected by JS -->
+    </div>
+  </div><!-- /detailPage -->
+
+
+  <!-- Toast -->
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <!-- ═════════ STICKY BANNER AD ═════════ -->
+  <!-- Sticky Banner Ad -->
   <div id="ad-banner" aria-label="Advertisement">
-    <!-- Monetag Banner Zone 11068936 -->
     <script>
-      (function(s){
+      (function() {
+        var s = document.createElement('script');
         s.dataset.zone = '11068936';
         s.src = 'https://nap5k.com/tag.min.js';
-      })(
-        [document.documentElement, document.body]
-          .filter(Boolean).pop()
-          .appendChild(document.createElement('script'))
-      );
+        document.getElementById('ad-banner').appendChild(s);
+      })();
     </script>
   </div>
 
+
   <script>
-    // ═══════════════════════════════════════════
-    // CONFIG  — set your values here
-    // ═══════════════════════════════════════════
-    const API_BASE     = 'https://mikasa-bookbot.onrender.com';   // aiohttp backend URL
-    const BOT_USERNAME = 'GoogleBookxSearchBot';          // without @
+  /* ════════════════════════════════════════════
+     CONFIG  ← change these
+  ════════════════════════════════════════════ */
+  const API_BASE      = 'https://mikasa-bookbot.onrender.com';   // aiohttp backend
+  const BOT_USERNAME  = 'GoogleBookxSearchBot';           // without @
+  const COUNTDOWN_SEC = 15;                            // seconds before download unlocks
 
-    // ═══════════════════════════════════════════
-    // TELEGRAM WEBAPP INIT
-    // ═══════════════════════════════════════════
-    const tg = window.Telegram?.WebApp;
+  /* ════════════════════════════════════════════
+     TELEGRAM INIT
+  ════════════════════════════════════════════ */
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.enableClosingConfirmation();
+    tg.setHeaderColor('#0F1117');
+    tg.setBackgroundColor('#0F1117');
+  }
+
+  /* ════════════════════════════════════════════
+     PAGE ROUTER
+  ════════════════════════════════════════════ */
+  const searchPage = document.getElementById('searchPage');
+  const detailPage = document.getElementById('detailPage');
+  let countdownTimer = null;
+
+  function showSearch() {
+    // Cancel any running countdown
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+
+    searchPage.classList.remove('hidden-left', 'hidden-right');
+    detailPage.classList.remove('hidden-left');
+    detailPage.classList.add('hidden-right');
+
+    // Update Telegram back button
+    if (tg) tg.BackButton.hide();
+  }
+
+  function showDetail(book) {
+    buildDetailPage(book);
+
+    searchPage.classList.add('hidden-left');
+    searchPage.classList.remove('hidden-right');
+    detailPage.classList.remove('hidden-right', 'hidden-left');
+
     if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.enableClosingConfirmation();
-      // Signal the app is ready so Telegram removes the loading spinner
-      tg.setHeaderColor('#0F1117');
-      tg.setBackgroundColor('#0F1117');
+      tg.BackButton.show();
+      tg.BackButton.onClick(showSearch);
     }
+  }
 
-    // ═══════════════════════════════════════════
-    // STATE MACHINE
-    // ═══════════════════════════════════════════
-    const STATES = ['stateWelcome', 'stateLoading', 'stateResults', 'stateEmpty', 'stateError'];
+  document.getElementById('backBtn').addEventListener('click', showSearch);
 
-    function showState(id) {
-      STATES.forEach(s => {
-        const el = document.getElementById(s);
-        if (!el) return;
-        if (s === 'stateResults') {
-          el.style.display = s === id ? 'block' : 'none';
-        } else {
-          el.classList.toggle('active', s === id);
-        }
-      });
-      const hdr = document.getElementById('resultsHeader');
-      hdr.classList.toggle('visible', id === 'stateResults');
-    }
+  /* ════════════════════════════════════════════
+     SEARCH STATE MACHINE
+  ════════════════════════════════════════════ */
+  const STATES = ['stWelcome','stLoading','stResults','stEmpty','stError'];
 
-    // Init
-    showState('stateWelcome');
-
-    // ═══════════════════════════════════════════
-    // SEARCH LOGIC
-    // ═══════════════════════════════════════════
-    let debounceTimer = null;
-    let lastQuery = '';
-    let currentAbort = null;
-
-    const searchInput = document.getElementById('searchInput');
-    const clearBtn    = document.getElementById('clearBtn');
-
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim();
-      clearBtn.classList.toggle('visible', q.length > 0);
-      clearTimeout(debounceTimer);
-      if (q.length === 0) { showState('stateWelcome'); return; }
-      if (q.length < 2) return;
-      debounceTimer = setTimeout(() => performSearch(q), 420);
-    });
-
-    clearBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      clearBtn.classList.remove('visible');
-      showState('stateWelcome');
-      searchInput.focus();
-    });
-
-    function quickSearch(term) {
-      searchInput.value = term;
-      clearBtn.classList.add('visible');
-      performSearch(term);
-    }
-
-    function retrySearch() {
-      if (lastQuery) performSearch(lastQuery);
-    }
-
-    async function performSearch(query) {
-      if (query === lastQuery && document.getElementById('results').children.length > 0) return;
-      lastQuery = query;
-
-      // Cancel any in-flight request
-      if (currentAbort) currentAbort.abort();
-      currentAbort = new AbortController();
-
-      showState('stateLoading');
-
-      try {
-        const url = `${API_BASE}/api/search?q=${encodeURIComponent(query)}`;
-        const res  = await fetch(url, { signal: currentAbort.signal });
-
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
-        const data = await res.json();
-
-        if (!data.results || data.results.length === 0) {
-          showState('stateEmpty');
-          return;
-        }
-
-        renderResults(data.results);
-      } catch (err) {
-        if (err.name === 'AbortError') return; // cancelled
-        console.error('Search error:', err);
-        document.getElementById('errorMsg').textContent =
-          err.message || 'Could not connect to the server. Please try again.';
-        showState('stateError');
+  function showState(id) {
+    STATES.forEach(s => {
+      const el = document.getElementById(s);
+      if (!el) return;
+      if (s === 'stResults') {
+        el.style.display = (s === id) ? 'block' : 'none';
+      } else {
+        el.classList.toggle('on', s === id);
       }
+    });
+    document.getElementById('resHdr').classList.toggle('vis', id === 'stResults');
+  }
+
+  showState('stWelcome');
+
+  /* ════════════════════════════════════════════
+     SEARCH LOGIC
+  ════════════════════════════════════════════ */
+  let debounceT = null, lastQ = '', abortCtrl = null;
+  const searchInput = document.getElementById('searchInput');
+  const clearBtn    = document.getElementById('clearBtn');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    clearBtn.classList.toggle('vis', q.length > 0);
+    clearTimeout(debounceT);
+    if (!q) { showState('stWelcome'); return; }
+    if (q.length < 2) return;
+    debounceT = setTimeout(() => doSearch(q), 400);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.classList.remove('vis');
+    lastQ = '';
+    showState('stWelcome');
+    searchInput.focus();
+  });
+
+  function quickSearch(term) {
+    searchInput.value = term;
+    clearBtn.classList.add('vis');
+    doSearch(term);
+  }
+
+  function retrySearch() { if (lastQ) doSearch(lastQ); }
+
+  async function doSearch(q) {
+    if (q === lastQ && document.getElementById('results').children.length > 0) return;
+    lastQ = q;
+    if (abortCtrl) abortCtrl.abort();
+    abortCtrl = new AbortController();
+    showState('stLoading');
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}`, { signal: abortCtrl.signal });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json();
+      if (!data.results?.length) { showState('stEmpty'); return; }
+      renderResults(data.results);
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      document.getElementById('errMsg').textContent = e.message || 'Connection failed.';
+      showState('stError');
     }
+  }
 
-    // ═══════════════════════════════════════════
-    // RENDER RESULTS
-    // ═══════════════════════════════════════════
-    function renderResults(books) {
-      const container = document.getElementById('results');
-      container.innerHTML = '';
+  /* ════════════════════════════════════════════
+     RENDER SEARCH RESULTS  (compact cards)
+  ════════════════════════════════════════════ */
+  function renderResults(books) {
+    const cnt = document.getElementById('results');
+    cnt.innerHTML = '';
+    document.getElementById('resCount').innerHTML =
+      `<span>${books.length}</span> result${books.length !== 1 ? 's' : ''} found`;
 
-      const count = document.getElementById('resultsCount');
-      count.innerHTML = `<span>${books.length}</span> result${books.length !== 1 ? 's' : ''} found`;
-
-      books.forEach((book, i) => {
-        const card = buildCard(book, i);
-        container.appendChild(card);
-      });
-
-      showState('stateResults');
-    }
-
-    function buildCard(book, index) {
+    books.forEach((book, i) => {
       const card = document.createElement('article');
-      card.className = 'book-card';
+      card.className = 'r-card';
       card.setAttribute('role', 'listitem');
-      card.style.animationDelay = `${index * 0.05}s`;
+      card.style.animationDelay = `${i * 0.05}s`;
 
-      // Sanitise fields
-      const title    = esc(book.title    || 'Untitled');
-      const author   = esc(book.author   || 'Unknown Author');
-      const synopsis = esc(book.synopsis || '');
-      const fileId   = esc(book.file_id  || '');
-      const buyLink  = esc(book.buy_link || '#');
-      const cover    = book.cover || '';
+      const cover  = book.cover || '';
+      const title  = esc(book.title  || 'Untitled');
+      const author = esc(book.author || 'Unknown Author');
+      const snip   = esc(book.synopsis || '');
 
-      const coverHTML = cover
-        ? `<img src="${esc(cover)}" alt="Cover of ${title}" loading="lazy"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-           <div class="cover-placeholder" style="display:none">📖<small>No cover</small></div>`
-        : `<div class="cover-placeholder">📖<small>No cover</small></div>`;
-
-      const synopsisSection = synopsis
-        ? `<p class="card-synopsis">${synopsis}</p>`
-        : `<p class="card-synopsis" style="color:var(--text-muted);font-style:italic">No synopsis available.</p>`;
+      const imgHTML = cover
+        ? `<img src="${esc(cover)}" alt="${title}" loading="lazy"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+           <div class="r-cover-ph" style="display:none">📖</div>`
+        : `<div class="r-cover-ph">📖<small>No cover</small></div>`;
 
       card.innerHTML = `
-        <div class="card-inner">
-          <div class="cover-wrap">${coverHTML}</div>
-          <div class="card-body">
-            <h2 class="card-title">${title}</h2>
-            <p class="card-author">✍️ ${author}</p>
-            ${synopsisSection}
-          </div>
+        <div class="r-cover">${imgHTML}</div>
+        <div class="r-info">
+          <div class="r-title">${title}</div>
+          <div class="r-author">✍️ ${author}</div>
+          ${snip ? `<div class="r-snip">${snip}</div>` : ''}
         </div>
-        <div class="gold-line"></div>
-        <div class="card-actions">
-          <button
-            class="btn btn-download"
-            data-file-id="${fileId}"
-            aria-label="Download ${title}"
-          >📥 Download</button>
-          <a
-            class="btn btn-buy"
-            href="${buyLink}"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Buy paperback of ${title}"
-          >🛒 Paperback</a>
-        </div>
+        <div class="r-arrow">›</div>
       `;
 
-      card.querySelector('.btn-download').addEventListener('click', function () {
-        handleDownload(this, fileId, title);
-      });
+      card.addEventListener('click', () => showDetail(book));
+      cnt.appendChild(card);
+    });
 
-      return card;
-    }
+    showState('stResults');
+  }
 
-    // ═══════════════════════════════════════════
-    // DOWNLOAD — Interstitial Ad → Deep Link
-    // ═══════════════════════════════════════════
-    function handleDownload(btn, fileId, title) {
-      if (!fileId) {
-        showToast('⚠️ File ID is missing.');
-        return;
+  /* ════════════════════════════════════════════
+     BUILD DETAIL PAGE
+  ════════════════════════════════════════════ */
+  function buildDetailPage(book) {
+    const title    = book.title    || 'Untitled';
+    const author   = book.author   || 'Unknown Author';
+    const synopsis = book.synopsis || '';
+    const cover    = book.cover    || '';
+    const fileId   = book.file_id  || '';
+    const buyLink  = book.buy_link || `https://www.amazon.com/s?k=${encodeURIComponent(title + ' ' + author)}`;
+
+    // Header title
+    document.getElementById('dHeaderTitle').textContent = title;
+
+    // Scroll detail body to top
+    const dBody = document.getElementById('dBody');
+    dBody.scrollTop = 0;
+
+    const coverHTML = cover
+      ? `<img src="${esc(cover)}" alt="${esc(title)}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+         <div class="d-cover-ph" style="display:none">📖</div>`
+      : `<div class="d-cover-ph">📖</div>`;
+
+    const bgStyle = cover ? `style="background-image:url('${esc(cover)}')"` : '';
+
+    const synopsisHTML = synopsis
+      ? `<p class="d-synopsis synopsis-collapsed" id="synText">${esc(synopsis)}</p>
+         <button class="read-more-btn" id="readMoreBtn" onclick="toggleSynopsis()">Read more ▾</button>`
+      : `<p class="d-synopsis" style="color:var(--text-3);font-style:italic">No synopsis available for this title.</p>`;
+
+    dBody.innerHTML = `
+      <!-- Hero -->
+      <div class="d-hero">
+        <div class="d-hero-bg" ${bgStyle}></div>
+        <div class="d-cover-wrap">${coverHTML}</div>
+        <div class="d-meta">
+          <div class="d-title">${esc(title)}</div>
+          <div class="d-author">✍️ ${esc(author)}</div>
+          <div class="d-badges">
+            <span class="badge">📖 Book</span>
+            <span class="badge">🆓 Free</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Synopsis -->
+      <div class="d-section">
+        <div class="d-section-label">About this book</div>
+        ${synopsisHTML}
+      </div>
+
+      <!-- Download zone -->
+      <div class="d-download-section">
+
+        <div class="countdown-wrap">
+          <div class="countdown-ring-wrap">
+            <svg class="countdown-ring" viewBox="0 0 80 80">
+              <circle class="ring-track" cx="40" cy="40" r="35"/>
+              <circle class="ring-fill" id="ringFill" cx="40" cy="40" r="35"/>
+            </svg>
+            <div class="countdown-num" id="countdownNum">${COUNTDOWN_SEC}</div>
+          </div>
+          <div class="countdown-label" id="countdownLabel">
+            Preparing your download…<br/>Please wait <strong id="secWord">${COUNTDOWN_SEC} seconds</strong>
+          </div>
+        </div>
+
+        <div class="preparing-msg">
+          <span class="icon">💡</span>
+          <p>
+            <strong>Why wait?</strong> We're verifying the file and preparing a secure link.
+            Your download will be ready in a moment — use this time to check out the synopsis above!
+          </p>
+        </div>
+
+        <button class="dl-btn locked" id="dlBtn" disabled>
+          🔒 &nbsp;Download Locked
+        </button>
+
+        <a class="buy-link" href="${esc(buyLink)}" target="_blank" rel="noopener noreferrer">
+          🛒 &nbsp;Buy Paperback on Amazon
+        </a>
+      </div>
+    `;
+
+    // Start countdown
+    startCountdown(fileId, title);
+  }
+
+  /* ════════════════════════════════════════════
+     COUNTDOWN TIMER
+  ════════════════════════════════════════════ */
+  const CIRCUMFERENCE = 2 * Math.PI * 35; // ≈ 219.9
+
+  function startCountdown(fileId, title) {
+    clearInterval(countdownTimer);
+
+    let remaining = COUNTDOWN_SEC;
+    const ringFill     = document.getElementById('ringFill');
+    const countdownNum = document.getElementById('countdownNum');
+    const countdownLbl = document.getElementById('countdownLabel');
+    const secWord      = document.getElementById('secWord');
+    const dlBtn        = document.getElementById('dlBtn');
+
+    // Init ring
+    ringFill.style.strokeDasharray  = CIRCUMFERENCE;
+    ringFill.style.strokeDashoffset = 0;
+
+    function tick() {
+      remaining--;
+
+      // Update ring (drains from full to empty)
+      const progress = remaining / COUNTDOWN_SEC;
+      ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+
+      // Update number
+      countdownNum.textContent = remaining;
+
+      // Update label
+      if (remaining > 0) {
+        secWord.textContent = `${remaining} second${remaining !== 1 ? 's' : ''}`;
       }
 
-      btn.classList.add('loading');
-      btn.textContent = '⏳ Loading…';
-
-      const deepLink = `tg://resolve?domain=${BOT_USERNAME}&start=file_${fileId}`;
-
-      // Trigger Monetag interstitial; fallback if SDK unavailable
-      const adPromise = (typeof show_11064455 === 'function')
-        ? show_11064455()
-        : Promise.resolve();
-
-      adPromise
-        .then(() => {
-          // Small delay lets the ad close cleanly before switching context
-          setTimeout(() => { window.location.href = deepLink; }, 150);
-        })
-        .catch(() => {
-          // Ad blocked or error — deliver file anyway (user-first)
-          window.location.href = deepLink;
-        })
-        .finally(() => {
-          // Restore button after 3s
-          setTimeout(() => {
-            btn.classList.remove('loading');
-            btn.innerHTML = '📥 Download';
-          }, 3000);
-        });
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        unlockDownload(fileId, title, ringFill, countdownNum, countdownLbl, dlBtn);
+      }
     }
 
-    // ═══════════════════════════════════════════
-    // TOAST
-    // ═══════════════════════════════════════════
-    let toastTimer = null;
-    function showToast(msg, duration = 3000) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
-    }
+    countdownTimer = setInterval(tick, 1000);
+  }
 
-    // ═══════════════════════════════════════════
-    // HELPERS
-    // ═══════════════════════════════════════════
-    function esc(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+  function unlockDownload(fileId, title, ringFill, countdownNum, countdownLbl, dlBtn) {
+    // Ring turns green
+    ringFill.classList.add('done');
+    countdownNum.textContent = '✓';
+    countdownNum.classList.add('done');
+    countdownLbl.innerHTML = '<strong style="color:#4CAF7D">Your download is ready!</strong>';
 
-    // Autofocus search on open (after a tick so keyboard appears)
-    setTimeout(() => searchInput.focus(), 200);
+    // Unlock button with pulse animation
+    dlBtn.disabled = false;
+    dlBtn.className = 'dl-btn unlocked';
+    dlBtn.innerHTML = '📥 &nbsp;Download Now';
+
+    // Pulse effect to draw attention
+    dlBtn.animate([
+      { transform: 'scale(1)',    boxShadow: '0 4px 24px rgba(201,168,76,.35)' },
+      { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.55)' },
+      { transform: 'scale(1)',    boxShadow: '0 4px 24px rgba(201,168,76,.35)' },
+    ], { duration: 600, iterations: 3, easing: 'ease-in-out' });
+
+    dlBtn.addEventListener('click', () => handleDownload(dlBtn, fileId, title), { once: true });
+  }
+
+  /* ════════════════════════════════════════════
+     HANDLE DOWNLOAD  — interstitial → deep link
+  ════════════════════════════════════════════ */
+  function handleDownload(btn, fileId, title) {
+    if (!fileId) { showToast('⚠️ File ID missing.'); return; }
+
+    btn.className   = 'dl-btn processing';
+    btn.innerHTML   = '⏳ &nbsp;Opening…';
+    btn.disabled    = true;
+
+    const deepLink = `tg://resolve?domain=${BOT_USERNAME}&start=file_${fileId}`;
+
+    const adPromise = (typeof show_11064455 === 'function')
+      ? show_11064455()
+      : Promise.resolve();
+
+    adPromise
+      .then(() => { setTimeout(() => { window.location.href = deepLink; }, 180); })
+      .catch(() => { window.location.href = deepLink; })
+      .finally(() => {
+        // Restore after 4s in case user comes back
+        setTimeout(() => {
+          btn.className  = 'dl-btn unlocked';
+          btn.innerHTML  = '📥 &nbsp;Download Again';
+          btn.disabled   = false;
+          btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
+        }, 4000);
+      });
+  }
+
+  /* ════════════════════════════════════════════
+     SYNOPSIS TOGGLE
+  ════════════════════════════════════════════ */
+  function toggleSynopsis() {
+    const el  = document.getElementById('synText');
+    const btn = document.getElementById('readMoreBtn');
+    if (!el || !btn) return;
+    const expanded = el.classList.toggle('synopsis-collapsed');
+    btn.textContent = expanded ? 'Read more ▾' : 'Show less ▴';
+    // "expanded" is flipped here because toggle returns the new state
+    btn.textContent = el.classList.contains('synopsis-collapsed') ? 'Read more ▾' : 'Show less ▴';
+  }
+
+  /* ════════════════════════════════════════════
+     TOAST
+  ════════════════════════════════════════════ */
+  let toastT = null;
+  function showToast(msg, ms = 3000) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove('show'), ms);
+  }
+
+  /* ════════════════════════════════════════════
+     HELPERS
+  ════════════════════════════════════════════ */
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Autofocus
+  setTimeout(() => searchInput.focus(), 200);
   </script>
 </body>
 </html>
