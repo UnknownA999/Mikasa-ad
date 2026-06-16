@@ -1114,7 +1114,8 @@
      and sees the file being sent.
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    const url = `https://t.me/${BOT_USERNAME}?start=file_${fileId}`;
+    const url = `https://t.me/${GoogleBookxSearchBot}?start=webdl_${fileId}`;
+
 
     if (tg && typeof tg.openTelegramLink === 'function') {
       tg.openTelegramLink(url);
