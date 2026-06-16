@@ -992,15 +992,25 @@
     btn.innerHTML   = '⏳ &nbsp;Opening…';
     btn.disabled    = true;
 
-    const deepLink = `tg://resolve?domain=${BOT_USERNAME}&start=file_${fileId}`;
+    // FIX: Standard t.me link use karo taaki Telegram WebApp SDK isko samajh sake
+    const deepLink = `https://t.me/${GoogleBookxSearchBot}?start=webdl_${fileId}`;
+
+    // Helper function to safely open the link inside or outside Telegram
+    const openLink = () => {
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(deepLink); // Mini App method
+      } else {
+        window.location.href = deepLink; // Normal Browser method
+      }
+    };
 
     const adPromise = (typeof show_11064455 === 'function')
       ? show_11064455()
       : Promise.resolve();
 
     adPromise
-      .then(() => { setTimeout(() => { window.location.href = deepLink; }, 180); })
-      .catch(() => { window.location.href = deepLink; })
+      .then(() => { setTimeout(openLink, 180); })
+      .catch(openLink)
       .finally(() => {
         // Restore after 4s in case user comes back
         setTimeout(() => {
@@ -1011,6 +1021,7 @@
         }, 4000);
       });
   }
+
 
   /* ════════════════════════════════════════════
      SYNOPSIS TOGGLE
