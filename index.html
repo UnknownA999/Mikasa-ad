@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Book Library</title>
+  <title>Mikasa Book Library</title>
 
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram WebApp SDK — MUST be first script -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- Interstitial Ad SDK -->
-  <script src="//libtl.com/sdk.js" data-zone="11064455" data-sdk="show_11064455"></script>
+  <!-- Monetag Interstitial SDK -->
+  <script src="https://libtl.com/sdk.js" data-zone="11064455" data-sdk="show_11064455"></script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,26 +18,28 @@
 
   <style>
     /* ══════════════════════════════════════════
-       TOKENS>
+       DESIGN TOKENS>
     ══════════════════════════════════════════ */
     :root {
-      --bg:           #0F1117;
-      --surface:      #1A1D27;
-      --surface-2:    #22263A;
-      --border:       #2A2D3E;
-      --gold:         #C9A84C;
-      --gold-light:   #E2C474;
-      --gold-dim:     rgba(201,168,76,0.14);
-      --gold-glow:    rgba(201,168,76,0.22);
-      --text-1:       #F0EDE6;
-      --text-2:       #9A97A8;
-      --text-3:       #5C5A6E;
-      --ad-h:         60px;
-      --r-card:       16px;
-      --r-btn:        12px;
-      --font-d:       'Playfair Display', Georgia, serif;
-      --font-u:       'Inter', system-ui, sans-serif;
-      --ease:         0.22s cubic-bezier(.4,0,.2,1);
+      --bg:          #0F1117;
+      --surface:     #1A1D27;
+      --surface-2:   #22263A;
+      --border:      #2A2D3E;
+      --gold:        #C9A84C;
+      --gold-light:  #E2C474;
+      --gold-dim:    rgba(201,168,76,0.14);
+      --gold-glow:   rgba(201,168,76,0.22);
+      --green:       #4CAF7D;
+      --text-1:      #F0EDE6;
+      --text-2:      #9A97A8;
+      --text-3:      #5C5A6E;
+      --ad-h:        60px;
+      --search-h:    64px;   /* bottom search bar height */
+      --r-card:      16px;
+      --r-btn:       12px;
+      --font-d:      'Playfair Display', Georgia, serif;
+      --font-u:      'Inter', system-ui, sans-serif;
+      --ease:        0.22s cubic-bezier(.4,0,.2,1);
     }
 
     /* ══════════════════════════════════════════
@@ -57,132 +59,169 @@
     }
 
     /* ══════════════════════════════════════════
-       PAGE SYSTEM  (search-page / detail-page)
+       PAGE SYSTEM
     ══════════════════════════════════════════ */
     .page {
       position: fixed;
       inset: 0;
-      top: 130px; /* 👈 Creates a dedicated "Billboard" spot at the top for ads */
-      bottom: 0;  /* 👈 Frees up the bottom screen space */
       display: flex;
       flex-direction: column;
       overflow: hidden;
       background: var(--bg);
-      transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s ease;
+      /* sits above ad, below search bar space handled per page */
+      transition: transform 0.32s cubic-bezier(.4,0,.2,1), opacity 0.32s ease;
     }
-
-
-    .page.hidden-right  { transform: translateX(100%); opacity: 0; pointer-events: none; }
-    .page.hidden-left   { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .page.hidden-right { transform: translateX(100%); opacity: 0; pointer-events: none; }
+    .page.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
 
     /* ══════════════════════════════════════════
-       SEARCH PAGE — HEADER
+       SEARCH PAGE LAYOUT
+       ┌──────────────┐
+       │  Brand header│  fixed top
+       ├──────────────┤
+       │   Results    │  scrollable, padded
+       │   / Welcome  │  bottom: ad + searchbar
+       ├──────────────┤
+       │  Search bar  │  fixed above ad
+       ├──────────────┤
+       │  Banner Ad   │  fixed bottom
+       └──────────────┘
     ══════════════════════════════════════════ */
-    .s-header {
+    #searchPage {
+      /* content area: below brand header, above search bar + ad */
+    }
+
+    .s-brand {
       flex-shrink: 0;
-      background: rgba(15,17,23,0.94);
+      background: rgba(15,17,23,0.96);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
-      padding: 14px 16px 12px;
-    }
-
-    .brand-row {
+      padding: 12px 16px;
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      z-index: 30;
     }
 
     .brand-icon {
-      width: 34px; height: 34px;
+      width: 36px; height: 36px;
       background: var(--gold-dim);
       border: 1px solid var(--gold);
-      border-radius: 8px;
+      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
+      font-size: 19px; flex-shrink: 0;
     }
 
     .brand-text h1 {
       font-family: var(--font-d);
-      font-size: 17px; font-weight: 700;
+      font-size: 16px; font-weight: 700;
       color: var(--text-1); letter-spacing: .01em;
+      line-height: 1.2;
     }
-
     .brand-text p {
-      font-size: 11px; color: var(--text-3);
-      font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
+      font-size: 10px; color: var(--text-3);
+      font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
     }
 
-    .search-wrap { position: relative; }
-
-    .search-wrap .ico {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      color: var(--text-3); font-size: 16px; pointer-events: none;
-      transition: color var(--ease);
-    }
-
-    #searchInput {
-      width: 100%; height: 46px;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 0 42px 0 42px;
-      color: var(--text-1);
-      font-family: var(--font-u); font-size: 15px;
-      outline: none;
-      transition: border-color var(--ease), box-shadow var(--ease);
-    }
-
-    #searchInput:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px var(--gold-glow), 0 0 20px rgba(201,168,76,.07);
-    }
-
-    .search-wrap:focus-within .ico { color: var(--gold); }
-    #searchInput::placeholder { color: var(--text-3); }
-
-    .clear-btn {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; color: var(--text-3);
-      cursor: pointer; font-size: 17px; padding: 4px; line-height: 1;
-      display: none; transition: color var(--ease);
-    }
-    .clear-btn.vis { display: block; }
-    .clear-btn:hover { color: var(--text-1); }
-
-    /* ══════════════════════════════════════════
-       SEARCH PAGE — SCROLL BODY
-    ══════════════════════════════════════════ */
+    /* Scrollable content area */
     .s-body {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      padding: 18px 14px 12px;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      /* bottom padding = search bar + ad + breathing room */
+      padding: 16px 14px calc(var(--search-h) + var(--ad-h) + 16px);
       -webkit-overflow-scrolling: touch;
     }
 
-    /* States */
+    /* ── CENTERED FLOATING SEARCH BAR ── */
+    #searchBar {
+      position: fixed;
+      bottom: calc(var(--ad-h) + 20px); /* Ad ke theek upar center mein float karega */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 450px;
+      height: auto;
+      background: transparent;
+      border: none;
+      padding: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-wrap { position: relative; flex: 1; width: 100%; }
+
+    .search-wrap .s-ico {
+      position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; color: var(--text-3); pointer-events: none;
+      transition: color var(--ease);
+      z-index: 2;
+    }
+    .search-wrap:focus-within .s-ico { color: var(--gold); }
+
+    #searchInput {
+      width: 100%; height: 52px;
+      background: rgba(26, 29, 39, 0.90);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid var(--border);
+      border-radius: 26px; /* Ekdum perfect curved Capsule shape */
+      padding: 0 45px;
+      color: var(--text-1);
+      font-family: var(--font-u); font-size: 16px;
+      outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.5); /* Premium shadow */
+      text-align: center; /* Placeholder aur typing text bhi center mein rakhega */
+    }
+    
+    #searchInput:focus {
+      border-color: var(--gold);
+      box-shadow: 0 8px 28px rgba(201,168,76,0.18), 0 0 0 2px var(--gold-glow);
+    }
+    
+    #searchInput::placeholder { color: var(--text-3); font-size: 15px; }
+
+    .clear-btn {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-3);
+      cursor: pointer; font-size: 18px; padding: 4px; line-height: 1;
+      display: none; transition: color var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      z-index: 2;
+    }
+    .clear-btn.vis { display: block; }
+
+
+    /* ══════════════════════════════════════════
+       STATES
+    ══════════════════════════════════════════ */
     .state { display: none; text-align: center; }
     .state.on { display: block; }
 
     /* Welcome */
-    .welcome { padding: 32px 16px; }
+    .welcome { padding: 28px 16px; }
     .w-emoji {
-      font-size: 50px; display: block; margin-bottom: 14px;
-      filter: drop-shadow(0 2px 12px rgba(201,168,76,.28));
+      font-size: 48px; display: block; margin-bottom: 14px;
+      filter: drop-shadow(0 2px 14px rgba(201,168,76,.3));
     }
     .welcome h2 {
-      font-family: var(--font-d); font-size: 22px; font-weight: 700;
+      font-family: var(--font-d); font-size: 21px; font-weight: 700;
       margin-bottom: 8px; letter-spacing: .01em;
     }
-    .welcome p { font-size: 14px; color: var(--text-2); line-height: 1.65; max-width: 270px; margin: 0 auto 22px; }
-
+    .welcome p {
+      font-size: 13px; color: var(--text-2); line-height: 1.65;
+      max-width: 270px; margin: 0 auto 22px;
+    }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
     .chip {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 20px; padding: 6px 14px;
+      border-radius: 20px; padding: 7px 14px;
       font-size: 13px; color: var(--text-2); cursor: pointer;
-      transition: border-color var(--ease), color var(--ease), background var(--ease);
       -webkit-tap-highlight-color: transparent;
+      transition: border-color var(--ease), color var(--ease), background var(--ease);
     }
     .chip:active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
 
@@ -191,7 +230,8 @@
     .spinner {
       width: 36px; height: 36px;
       border: 3px solid var(--border); border-top-color: var(--gold);
-      border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 14px;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      margin: 0 auto 14px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-st p { color: var(--text-2); font-size: 14px; }
@@ -209,15 +249,16 @@
     .error-st p { font-size: 13px; color: var(--text-2); margin-bottom: 18px; }
 
     /* Results header */
-    .res-hdr {
-      display: none; align-items: center; margin-bottom: 14px;
-    }
+    .res-hdr { display: none; align-items: center; margin-bottom: 14px; }
     .res-hdr.vis { display: flex; }
-    .res-count { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); }
+    .res-count {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text-3);
+    }
     .res-count span { color: var(--gold); }
 
     /* ══════════════════════════════════════════
-       SEARCH RESULT CARDS  (compact)
+       SEARCH RESULT CARDS
     ══════════════════════════════════════════ */
     #results { display: flex; flex-direction: column; gap: 12px; }
 
@@ -227,12 +268,12 @@
       border-radius: var(--r-card);
       display: flex; align-items: stretch;
       overflow: hidden; cursor: pointer;
-      box-shadow: 0 2px 18px rgba(0,0,0,.35);
+      box-shadow: 0 2px 16px rgba(0,0,0,.3);
       animation: fadeUp .28s ease both;
-      transition: border-color var(--ease), box-shadow var(--ease);
       -webkit-tap-highlight-color: transparent;
+      transition: border-color var(--ease);
     }
-    .r-card:active { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-dim); }
+    .r-card:active { border-color: var(--gold); }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(10px); }
@@ -240,37 +281,51 @@
     }
 
     .r-cover {
-      width: 72px; min-width: 72px; height: 110px;
-      background: var(--surface-2); overflow: hidden; position: relative;
-      border-right: 1px solid var(--border); flex-shrink: 0;
+      width: 76px; min-width: 76px; height: 114px;
+      background: var(--surface-2);
+      border-right: 1px solid var(--border);
+      flex-shrink: 0; overflow: hidden; position: relative;
     }
-    .r-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .r-cover img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
     .r-cover-ph {
       width: 100%; height: 100%;
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 4px;
-      font-size: 22px; color: var(--text-3);
+      font-size: 24px; color: var(--text-3);
     }
-    .r-cover-ph small { font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+    .r-cover-ph small {
+      font-size: 8px; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--text-3);
+    }
 
     .r-info {
-      flex: 1; padding: 12px 14px; display: flex; flex-direction: column;
-      gap: 4px; min-width: 0;
+      flex: 1; padding: 12px 12px; display: flex;
+      flex-direction: column; gap: 4px; min-width: 0;
     }
     .r-title {
       font-family: var(--font-d); font-size: 14px; font-weight: 700;
       line-height: 1.3; color: var(--text-1);
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
     .r-author { font-size: 12px; font-weight: 600; color: var(--gold); }
     .r-snip {
       font-size: 12px; color: var(--text-2); line-height: 1.5; margin-top: 2px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
     .r-arrow {
       flex-shrink: 0; display: flex; align-items: center;
-      padding: 0 12px 0 6px; color: var(--text-3); font-size: 16px;
+      padding: 0 12px 0 4px; color: var(--text-3); font-size: 18px;
     }
+
+    .r-card:nth-child(1) { animation-delay: .03s; }
+    .r-card:nth-child(2) { animation-delay: .08s; }
+    .r-card:nth-child(3) { animation-delay: .13s; }
+    .r-card:nth-child(4) { animation-delay: .18s; }
+    .r-card:nth-child(5) { animation-delay: .23s; }
 
     /* ══════════════════════════════════════════
        DETAIL PAGE
@@ -278,18 +333,19 @@
     .d-header {
       flex-shrink: 0;
       display: flex; align-items: center; gap: 12px;
-      background: rgba(15,17,23,0.94);
+      background: rgba(15,17,23,0.96);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
-      padding: 13px 16px;
+      padding: 12px 16px;
+      z-index: 30;
     }
 
     .back-btn {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 9px; width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; cursor: pointer; flex-shrink: 0;
+      font-size: 20px; cursor: pointer; flex-shrink: 0;
       transition: border-color var(--ease), background var(--ease);
       -webkit-tap-highlight-color: transparent;
     }
@@ -298,15 +354,19 @@
     .d-header-title {
       font-family: var(--font-d); font-size: 15px; font-weight: 700;
       color: var(--text-1); line-height: 1.2;
-      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
 
     .d-body {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
+      flex: 1;
+      overflow-y: auto; overflow-x: hidden;
+      /* pad bottom for ad bar */
+      padding-bottom: var(--ad-h);
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Hero cover section */
+    /* ── Hero ── */
     .d-hero {
       position: relative;
       background: var(--surface);
@@ -314,168 +374,155 @@
       display: flex; gap: 16px;
       padding: 20px 16px;
       overflow: hidden;
+      min-height: 180px;
     }
 
-    /* Blurred cover background for atmosphere */
     .d-hero-bg {
       position: absolute; inset: 0;
       background-size: cover; background-position: center;
-      filter: blur(28px) brightness(0.25) saturate(1.5);
-      transform: scale(1.1);
+      filter: blur(30px) brightness(0.22) saturate(1.6);
+      transform: scale(1.15);
       z-index: 0;
     }
 
     .d-cover-wrap {
       position: relative; z-index: 1;
-      width: 100px; min-width: 100px; height: 148px;
+      width: 106px; min-width: 106px; height: 156px;
       border-radius: 10px; overflow: hidden;
-      box-shadow: 0 8px 28px rgba(0,0,0,.65);
+      box-shadow: 0 8px 30px rgba(0,0,0,.7);
       flex-shrink: 0;
       border: 1px solid rgba(255,255,255,.1);
+      background: var(--surface-2);
     }
     .d-cover-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .d-cover-ph {
-      width: 100%; height: 100%; background: var(--surface-2);
+      width: 100%; height: 100%;
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 6px;
-      font-size: 30px; color: var(--text-3);
+      justify-content: center; gap: 8px;
+      font-size: 32px; color: var(--text-3);
+    }
+    .d-cover-ph small {
+      font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3);
     }
 
     .d-meta {
       position: relative; z-index: 1;
-      display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
-      min-width: 0;
+      display: flex; flex-direction: column;
+      justify-content: flex-end; gap: 7px;
+      min-width: 0; padding-bottom: 2px;
     }
-
     .d-title {
       font-family: var(--font-d); font-size: 18px; font-weight: 700;
       line-height: 1.25; color: var(--text-1);
     }
-
-    .d-author {
-      font-size: 13px; font-weight: 600; color: var(--gold);
-    }
-
-    .d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .d-author { font-size: 13px; font-weight: 600; color: var(--gold); }
+    .d-badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .badge {
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 6px; padding: 3px 8px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 6px; padding: 3px 9px;
       font-size: 11px; color: var(--text-2); font-weight: 500;
     }
 
-    /* Synopsis section */
-    .d-section { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    /* ── Synopsis ── */
+    .d-section {
+      padding: 18px 16px;
+      border-bottom: 1px solid var(--border);
+    }
     .d-section-label {
       font-size: 11px; font-weight: 600; text-transform: uppercase;
       letter-spacing: .08em; color: var(--text-3); margin-bottom: 10px;
     }
     .d-synopsis {
-      font-size: 14px; color: var(--text-2); line-height: 1.7;
+      font-size: 14px; color: var(--text-2); line-height: 1.72;
     }
-    .synopsis-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+    .synopsis-collapsed {
+      display: -webkit-box; -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
     .read-more-btn {
       background: none; border: none; color: var(--gold);
       font-size: 13px; font-weight: 600; cursor: pointer;
-      padding: 6px 0 0; display: block;
+      padding: 8px 0 0; display: block;
       -webkit-tap-highlight-color: transparent;
     }
 
     /* ══════════════════════════════════════════
-       DOWNLOAD SECTION  (the money zone)
+       DOWNLOAD ZONE
     ══════════════════════════════════════════ */
-    .d-download-section {
-      padding: 20px 16px 24px;
-    }
+    .d-dl-section { padding: 22px 16px 28px; }
 
     /* Countdown ring */
     .countdown-wrap {
       display: flex; flex-direction: column; align-items: center;
-      gap: 10px; margin-bottom: 20px;
+      gap: 10px; margin-bottom: 22px;
     }
-
-    .countdown-ring-wrap {
-      position: relative; width: 80px; height: 80px;
-    }
-
-    .countdown-ring {
-      width: 80px; height: 80px;
-      transform: rotate(-90deg);
-    }
-
-    .ring-track {
-      fill: none; stroke: var(--border); stroke-width: 5;
-    }
-
+    .ring-wrap { position: relative; width: 84px; height: 84px; }
+    .c-ring { width: 84px; height: 84px; transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: var(--border); stroke-width: 5.5; }
     .ring-fill {
-      fill: none; stroke: var(--gold); stroke-width: 5;
+      fill: none; stroke: var(--gold); stroke-width: 5.5;
       stroke-linecap: round;
-      stroke-dasharray: 220;
+      stroke-dasharray: 226;
       stroke-dashoffset: 0;
       transition: stroke-dashoffset 1s linear, stroke var(--ease);
     }
-
-    .ring-fill.done { stroke: #4CAF7D; }
-
-    .countdown-num {
+    .ring-fill.done { stroke: var(--green); }
+    .c-num {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-d); font-size: 26px; font-weight: 700;
       color: var(--gold);
     }
-    .countdown-num.done { color: #4CAF7D; font-size: 28px; }
-
-    .countdown-label {
+    .c-num.done { color: var(--green); font-size: 30px; }
+    .c-label {
       font-size: 13px; color: var(--text-2); font-weight: 500; text-align: center;
+      line-height: 1.55;
     }
 
-    /* Preparing message */
-    .preparing-msg {
+    /* Info box */
+    .info-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 16px;
-      margin-bottom: 16px;
+      border-radius: 12px; padding: 13px 15px;
+      margin-bottom: 18px;
       display: flex; align-items: flex-start; gap: 10px;
     }
-    .preparing-msg .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-    .preparing-msg p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
-    .preparing-msg strong { color: var(--text-1); font-weight: 600; }
+    .info-box .ico { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .info-box p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+    .info-box strong { color: var(--text-1); font-weight: 600; }
 
     /* Download button */
     .dl-btn {
       width: 100%; height: 54px;
-      border-radius: var(--r-btn);
-      border: none; cursor: pointer;
+      border-radius: var(--r-btn); border: none; cursor: pointer;
       font-family: var(--font-u); font-size: 16px; font-weight: 700;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: background var(--ease), transform var(--ease), opacity var(--ease), box-shadow var(--ease);
-      -webkit-tap-highlight-color: transparent;
       letter-spacing: .01em;
+      -webkit-tap-highlight-color: transparent;
+      transition: background var(--ease), transform var(--ease),
+                  opacity var(--ease), box-shadow var(--ease);
     }
-
     .dl-btn.locked {
       background: var(--surface-2);
       border: 1.5px solid var(--border);
       color: var(--text-3); cursor: not-allowed;
     }
-
     .dl-btn.unlocked {
-      background: var(--gold);
-      color: #0F1117;
-      box-shadow: 0 4px 24px rgba(201,168,76,.35);
+      background: var(--gold); color: #0F1117;
+      box-shadow: 0 4px 24px rgba(201,168,76,.38);
     }
     .dl-btn.unlocked:active { transform: scale(0.97); box-shadow: none; }
-
     .dl-btn.processing {
       background: var(--gold-dim);
       border: 1.5px solid var(--gold);
-      color: var(--gold); cursor: not-allowed;
+      color: var(--gold); cursor: not-allowed; opacity: .85;
     }
 
-    /* Buy paperback link */
+    /* Buy link */
     .buy-link {
       display: flex; align-items: center; justify-content: center; gap: 7px;
-      margin-top: 14px; padding: 12px;
+      margin-top: 14px; padding: 13px;
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; text-decoration: none;
       color: var(--text-2); font-size: 14px; font-weight: 500;
@@ -484,40 +531,47 @@
     }
     .buy-link:active { border-color: var(--gold); color: var(--gold); }
 
-    /* ══════════════════════════════════════════
-       CTA BUTTONS (shared)
-    ══════════════════════════════════════════ */
+    /* CTA buttons */
     .cta {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 0 24px; height: 46px; border-radius: 12px;
       border: none; cursor: pointer;
       font-family: var(--font-u); font-size: 15px; font-weight: 600;
-      text-decoration: none;
-      -webkit-tap-highlight-color: transparent;
+      text-decoration: none; -webkit-tap-highlight-color: transparent;
       transition: background var(--ease), transform var(--ease);
     }
     .cta:active { transform: scale(0.97); }
-    .cta-gold { background: var(--gold); color: #0F1117; }
-    .cta-ghost { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-2); }
+    .cta-gold   { background: var(--gold); color: #0F1117; }
+    .cta-ghost  { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-2); }
 
     /* ══════════════════════════════════════════
-       STICKY BANNER AD
+       STICKY BANNER AD  (truly fixed, contained)
     ══════════════════════════════════════════ */
     #ad-banner {
-      /* We make this invisible because Monetag forces its own ads to the top of the page anyway */
-      position: absolute;
-      width: 0; height: 0;
-      overflow: hidden;
-      visibility: hidden;
+      position: fixed !important;
+      bottom: 0 !important; left: 0 !important; right: 0 !important; top: auto !important;
+      width: 100% !important;
+      height: var(--ad-h) !important;
+      max-height: var(--ad-h) !important;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 9999 !important;
+      display: flex !important;
+      align-items: center !important; justify-content: center !important;
+      overflow: hidden !important;
+      contain: strict;
     }
+    #ad-banner > *        { max-width: 100% !important; max-height: var(--ad-h) !important; overflow: hidden !important; }
+    #ad-banner iframe,
+    #ad-banner div        { position: static !important; top: auto !important; left: auto !important; transform: none !important; }
 
     /* ══════════════════════════════════════════
        TOAST
     ══════════════════════════════════════════ */
     #toast {
       position: fixed;
-      bottom: calc(var(--ad-h) + 14px); left: 50%;
-      transform: translateX(-50%) translateY(16px);
+      bottom: calc(var(--ad-h) + var(--search-h) + 10px);
+      left: 50%; transform: translateX(-50%) translateY(14px);
       background: var(--surface-2); border: 1px solid var(--border);
       border-radius: 10px; padding: 10px 20px;
       font-size: 13px; font-weight: 500; color: var(--text-1);
@@ -528,24 +582,18 @@
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ══════════════════════════════════════════
-       STAGGER
-    ══════════════════════════════════════════ */
-    .r-card:nth-child(1) { animation-delay: .02s; }
-    .r-card:nth-child(2) { animation-delay: .07s; }
-    .r-card:nth-child(3) { animation-delay: .12s; }
-    .r-card:nth-child(4) { animation-delay: .17s; }
-    .r-card:nth-child(5) { animation-delay: .22s; }
-
-    /* ══════════════════════════════════════════
-       A11Y
+       ACCESSIBILITY
     ══════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
     }
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   </style>
 </head>
 
@@ -556,72 +604,71 @@
   ══════════════════════════════════════════ -->
   <div id="searchPage" class="page">
 
-    <header class="s-header">
-      <div class="brand-row">
-        <div class="brand-icon">📚</div>
-        <div class="brand-text">
-          <h1>Book Library</h1>
-          <p>Thousands of titles · Free access</p>
-        </div>
+    <!-- Brand header (top) -->
+    <div class="s-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <h1>Mikasa Book Library</h1>
+        <p>Thousands of titles · Free access</p>
       </div>
-      <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="Search by title or author…"
-               autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search books" />
-        <span class="ico" aria-hidden="true">🔍</span>
-        <button class="clear-btn" id="clearBtn" aria-label="Clear">✕</button>
-      </div>
-    </header>
+    </div>
 
+    <!-- Scrollable content -->
     <div class="s-body">
+
       <!-- Results bar -->
       <div class="res-hdr" id="resHdr">
         <span class="res-count" id="resCount"></span>
       </div>
 
-      <!-- Welcome -->
+      <!-- Welcome state -->
       <div class="state welcome on" id="stWelcome">
         <div class="welcome">
           <span class="w-emoji">✨</span>
           <h2>Find Your Next Read</h2>
-          <p>Search our entire catalogue — novels, textbooks, classics, and more. All free.</p>
-          <div class="chips" role="list">
+          <p>Search our entire catalogue — novels, textbooks, classics, and more. All free to download.</p>
+          <div class="chips">
             <button class="chip" onclick="quickSearch('Harry Potter')">⚡ Harry Potter</button>
             <button class="chip" onclick="quickSearch('The Alchemist')">🧭 The Alchemist</button>
             <button class="chip" onclick="quickSearch('George Orwell')">🌏 George Orwell</button>
             <button class="chip" onclick="quickSearch('Sherlock Holmes')">🔎 Sherlock Holmes</button>
             <button class="chip" onclick="quickSearch('Stephen King')">👁 Stephen King</button>
+            <button class="chip" onclick="quickSearch('Atomic Habits')">⚛️ Atomic Habits</button>
           </div>
         </div>
       </div>
 
-      <!-- Loading -->
-      <div class="state loading-st" id="stLoading" aria-live="assertive">
+      <!-- Loading state -->
+      <div class="state loading-st" id="stLoading">
         <div class="spinner"></div>
         <p>Searching the library…</p>
       </div>
 
-      <!-- Results -->
+      <!-- Results state -->
       <div id="stResults" style="display:none">
         <div id="results" role="list" aria-label="Search results"></div>
       </div>
 
-      <!-- Empty -->
+      <!-- Empty state -->
       <div class="state empty-st" id="stEmpty">
         <span class="big">📭</span>
         <h3>Book Not in Database</h3>
         <p>We don't have this title yet — but our collection grows every day. Request it and we'll add it soon!</p>
-        <a class="cta cta-gold" href="https://t.me/request_mikasa" target="_blank" rel="noopener">📝 &nbsp;Request This Book</a>
+        <a class="cta cta-gold" href="https://t.me/mikasa_request_channel" target="_blank" rel="noopener">
+          📝 &nbsp;Request This Book
+        </a>
       </div>
 
-      <!-- Error -->
+      <!-- Error state -->
       <div class="state error-st" id="stError">
         <span class="big">⚠️</span>
         <h3>Something went wrong</h3>
-        <p id="errMsg">Could not connect. Please try again.</p>
+        <p id="errMsg">Could not connect to server.</p>
         <button class="cta cta-ghost" onclick="retrySearch()">🔄 &nbsp;Retry</button>
       </div>
-    </div>
-  </div><!-- /searchPage -->
+
+    </div><!-- /.s-body -->
+  </div><!-- /#searchPage -->
 
 
   <!-- ══════════════════════════════════════════
@@ -629,21 +676,39 @@
   ══════════════════════════════════════════ -->
   <div id="detailPage" class="page hidden-right">
 
-    <header class="d-header">
-      <button class="back-btn" id="backBtn" aria-label="Back to search">‹</button>
+    <div class="d-header">
+      <button class="back-btn" id="backBtn" aria-label="Go back">‹</button>
       <span class="d-header-title" id="dHeaderTitle">Book Details</span>
-    </header>
+    </div>
 
     <div class="d-body" id="dBody">
-      <!-- injected by JS -->
+      <!-- built by buildDetailPage() -->
     </div>
-  </div><!-- /detailPage -->
 
+  </div><!-- /#detailPage -->
+
+
+  <!-- ══════════════════════════════════════════
+       SEARCH BAR  (fixed above ad, search page only)
+  ══════════════════════════════════════════ -->
+  <div id="searchBar">
+    <div class="search-wrap">
+      <span class="s-ico">🔍</span>
+      <input id="searchInput" type="search"
+             placeholder="Search books, authors…"
+             autocomplete="off" autocorrect="off"
+             spellcheck="false" enterkeyhint="search"
+             aria-label="Search books" />
+      <button class="clear-btn" id="clearBtn" aria-label="Clear search">✕</button>
+    </div>
+  </div>
 
   <!-- Toast -->
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Sticky Banner Ad -->
+  <!-- ══════════════════════════════════════════
+       STICKY BANNER AD
+  ══════════════════════════════════════════ -->
   <div id="ad-banner" aria-label="Advertisement">
     <script>
       (function() {
@@ -658,22 +723,62 @@
 
   <script>
   /* ════════════════════════════════════════════
-     CONFIG  ← change these
+     ★  CONFIG  — only place you need to edit  ★
   ════════════════════════════════════════════ */
-  const API_BASE      = 'https://mikasa-bookbot.onrender.com';   // aiohttp backend
-  const BOT_USERNAME  = 'GoogleBookxSearchBot';           // without @
-  const COUNTDOWN_SEC = 15;                            // seconds before download unlocks
+  const API_BASE      = 'https://your-domain.com';     // your aiohttp backend
+  const BOT_USERNAME  = 'GoogleBookxSearchBot';         // without @
+  const COUNTDOWN_SEC = 15;
 
   /* ════════════════════════════════════════════
      TELEGRAM INIT
+     — tg.ready() MUST be called as early as
+       possible so Telegram removes its loader
   ════════════════════════════════════════════ */
   const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    tg.enableClosingConfirmation();
-    tg.setHeaderColor('#0F1117');
-    tg.setBackgroundColor('#0F1117');
+  try {
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.enableClosingConfirmation();
+      tg.setHeaderColor('#0F1117');
+      tg.setBackgroundColor('#0F1117');
+    }
+  } catch(e) {
+    try { tg?.ready(); } catch(_) {}
+  }
+
+  /* ════════════════════════════════════════════
+     IMAGE PROXY — FIX COVER IMAGES
+     ─────────────────────────────────────────
+     Google Books serves covers over plain HTTP.
+     Telegram's WebView (and most browsers in
+     HTTPS pages) block mixed-content images.
+
+     Fix: force https:// and strip Google's
+     zoom/edge-curl params that shrink the image.
+     If cover is still blank, fall back to
+     Open Library cover API.
+  ════════════════════════════════════════════ */
+  function fixCoverUrl(url, isbn, title) {
+    if (url) {
+      // Force HTTPS
+      url = url.replace(/^http:\/\//i, 'https://');
+      // Remove Google's low-res zoom param
+      url = url.replace(/&zoom=\d+/g, '').replace(/\?zoom=\d+&?/g, '?').replace(/\?$/, '');
+      // Bump to larger size (replace zoom=1 thumbnail with zoom=0 for higher res)
+      url = url.replace('zoom=1', 'zoom=0');
+      return url;
+    }
+    // Fallback 1: Open Library by ISBN
+    if (isbn) {
+      return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+    }
+    // Fallback 2: Open Library by title search
+    if (title) {
+      const q = encodeURIComponent(title.replace(/\s+/g, '+'));
+      return `https://covers.openlibrary.org/b/title/${q}-M.jpg`;
+    }
+    return '';
   }
 
   /* ════════════════════════════════════════════
@@ -681,18 +786,19 @@
   ════════════════════════════════════════════ */
   const searchPage = document.getElementById('searchPage');
   const detailPage = document.getElementById('detailPage');
-  let countdownTimer = null;
+  const searchBar  = document.getElementById('searchBar');
+  let   cdTimer    = null;
 
   function showSearch() {
-    // Cancel any running countdown
-    clearInterval(countdownTimer);
-    countdownTimer = null;
+    clearInterval(cdTimer); cdTimer = null;
 
     searchPage.classList.remove('hidden-left', 'hidden-right');
-    detailPage.classList.remove('hidden-left');
     detailPage.classList.add('hidden-right');
+    detailPage.classList.remove('hidden-left');
 
-    // Update Telegram back button
+    // Show the bottom search bar
+    searchBar.style.display = 'flex';
+
     if (tg) tg.BackButton.hide();
   }
 
@@ -703,8 +809,13 @@
     searchPage.classList.remove('hidden-right');
     detailPage.classList.remove('hidden-right', 'hidden-left');
 
+    // Hide search bar on detail page
+    searchBar.style.display = 'none';
+
     if (tg) {
       tg.BackButton.show();
+      // Use offHandler pattern to avoid stacking listeners
+      tg.BackButton.offClick(showSearch);
       tg.BackButton.onClick(showSearch);
     }
   }
@@ -712,7 +823,7 @@
   document.getElementById('backBtn').addEventListener('click', showSearch);
 
   /* ════════════════════════════════════════════
-     SEARCH STATE MACHINE
+     SEARCH STATES
   ════════════════════════════════════════════ */
   const STATES = ['stWelcome','stLoading','stResults','stEmpty','stError'];
 
@@ -734,17 +845,26 @@
   /* ════════════════════════════════════════════
      SEARCH LOGIC
   ════════════════════════════════════════════ */
-  let debounceT = null, lastQ = '', abortCtrl = null;
+  let debT = null, lastQ = '', abortCtrl = null;
   const searchInput = document.getElementById('searchInput');
   const clearBtn    = document.getElementById('clearBtn');
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim();
     clearBtn.classList.toggle('vis', q.length > 0);
-    clearTimeout(debounceT);
+    clearTimeout(debT);
     if (!q) { showState('stWelcome'); return; }
     if (q.length < 2) return;
-    debounceT = setTimeout(() => doSearch(q), 400);
+    debT = setTimeout(() => doSearch(q), 420);
+  });
+
+  // Allow enter key to search immediately
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      clearTimeout(debT);
+      const q = searchInput.value.trim();
+      if (q.length >= 2) doSearch(q);
+    }
   });
 
   clearBtn.addEventListener('click', () => {
@@ -771,20 +891,26 @@
     showState('stLoading');
 
     try {
-      const res  = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}`, { signal: abortCtrl.signal });
+      const res  = await fetch(
+        `${API_BASE}/api/search?q=${encodeURIComponent(q)}`,
+        { signal: abortCtrl.signal, headers: { 'Accept': 'application/json' } }
+      );
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
       if (!data.results?.length) { showState('stEmpty'); return; }
       renderResults(data.results);
     } catch (e) {
       if (e.name === 'AbortError') return;
-      document.getElementById('errMsg').textContent = e.message || 'Connection failed.';
+      document.getElementById('errMsg').textContent =
+        e.message?.includes('Failed to fetch')
+          ? 'No internet connection. Check your connection and retry.'
+          : (e.message || 'Connection failed.');
       showState('stError');
     }
   }
 
   /* ════════════════════════════════════════════
-     RENDER SEARCH RESULTS  (compact cards)
+     RENDER SEARCH RESULT CARDS
   ════════════════════════════════════════════ */
   function renderResults(books) {
     const cnt = document.getElementById('results');
@@ -798,15 +924,15 @@
       card.setAttribute('role', 'listitem');
       card.style.animationDelay = `${i * 0.05}s`;
 
-      const cover  = book.cover || '';
-      const title  = esc(book.title  || 'Untitled');
-      const author = esc(book.author || 'Unknown Author');
-      const snip   = esc(book.synopsis || '');
+      const coverUrl = fixCoverUrl(book.cover, book.isbn, book.title);
+      const title    = esc(book.title  || 'Untitled');
+      const author   = esc(book.author || 'Unknown Author');
+      const snip     = esc(book.synopsis || '');
 
-      const imgHTML = cover
-        ? `<img src="${esc(cover)}" alt="${title}" loading="lazy"
+      const imgHTML = coverUrl
+        ? `<img src="${esc(coverUrl)}" alt="${title}" loading="lazy"
                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-           <div class="r-cover-ph" style="display:none">📖</div>`
+           <div class="r-cover-ph" style="display:none">📖<small>No cover</small></div>`
         : `<div class="r-cover-ph">📖<small>No cover</small></div>`;
 
       card.innerHTML = `
@@ -833,32 +959,32 @@
     const title    = book.title    || 'Untitled';
     const author   = book.author   || 'Unknown Author';
     const synopsis = book.synopsis || '';
-    const cover    = book.cover    || '';
+    const coverUrl = fixCoverUrl(book.cover, book.isbn, title);
     const fileId   = book.file_id  || '';
-    const buyLink  = book.buy_link || `https://www.amazon.com/s?k=${encodeURIComponent(title + ' ' + author)}`;
+    const buyLink  = book.buy_link
+      || `https://www.amazon.com/s?k=${encodeURIComponent(title + ' ' + author)}&tag=mikasabooks-21`;
 
-    // Header title
     document.getElementById('dHeaderTitle').textContent = title;
+    document.getElementById('dBody').scrollTop = 0;
 
-    // Scroll detail body to top
-    const dBody = document.getElementById('dBody');
-    dBody.scrollTop = 0;
-
-    const coverHTML = cover
-      ? `<img src="${esc(cover)}" alt="${esc(title)}" loading="lazy"
+    const coverHTML = coverUrl
+      ? `<img src="${esc(coverUrl)}" alt="${esc(title)}"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-         <div class="d-cover-ph" style="display:none">📖</div>`
-      : `<div class="d-cover-ph">📖</div>`;
+         <div class="d-cover-ph" style="display:none">📖<small>No cover</small></div>`
+      : `<div class="d-cover-ph">📖<small>No cover</small></div>`;
 
-    const bgStyle = cover ? `style="background-image:url('${esc(cover)}')"` : '';
+    const bgStyle = coverUrl
+      ? `style="background-image:url('${esc(coverUrl)}')"` : '';
 
     const synopsisHTML = synopsis
       ? `<p class="d-synopsis synopsis-collapsed" id="synText">${esc(synopsis)}</p>
          <button class="read-more-btn" id="readMoreBtn" onclick="toggleSynopsis()">Read more ▾</button>`
-      : `<p class="d-synopsis" style="color:var(--text-3);font-style:italic">No synopsis available for this title.</p>`;
+      : `<p class="d-synopsis" style="color:var(--text-3);font-style:italic">
+           No synopsis available for this title.
+         </p>`;
 
-    dBody.innerHTML = `
-      <!-- Hero -->
+    document.getElementById('dBody').innerHTML = `
+
       <div class="d-hero">
         <div class="d-hero-bg" ${bgStyle}></div>
         <div class="d-cover-wrap">${coverHTML}</div>
@@ -866,181 +992,205 @@
           <div class="d-title">${esc(title)}</div>
           <div class="d-author">✍️ ${esc(author)}</div>
           <div class="d-badges">
-            <span class="badge">📖 Book</span>
+            <span class="badge">📖 eBook</span>
             <span class="badge">🆓 Free</span>
           </div>
         </div>
       </div>
 
-      <!-- Synopsis -->
       <div class="d-section">
         <div class="d-section-label">About this book</div>
         ${synopsisHTML}
       </div>
 
-      <!-- Download zone -->
-      <div class="d-download-section">
+      <div class="d-dl-section">
 
         <div class="countdown-wrap">
-          <div class="countdown-ring-wrap">
-            <svg class="countdown-ring" viewBox="0 0 80 80">
-              <circle class="ring-track" cx="40" cy="40" r="35"/>
-              <circle class="ring-fill" id="ringFill" cx="40" cy="40" r="35"/>
+          <div class="ring-wrap">
+            <svg class="c-ring" viewBox="0 0 84 84">
+              <circle class="ring-track" cx="42" cy="42" r="36"/>
+              <circle class="ring-fill"  cx="42" cy="42" r="36" id="ringFill"/>
             </svg>
-            <div class="countdown-num" id="countdownNum">${COUNTDOWN_SEC}</div>
+            <div class="c-num" id="cNum">${COUNTDOWN_SEC}</div>
           </div>
-          <div class="countdown-label" id="countdownLabel">
-            Preparing your download…<br/>Please wait <strong id="secWord">${COUNTDOWN_SEC} seconds</strong>
+          <div class="c-label" id="cLabel">
+            Preparing your download…<br/>
+            Please wait <strong id="cSec">${COUNTDOWN_SEC} seconds</strong>
           </div>
         </div>
 
-        <div class="preparing-msg">
-          <span class="icon">💡</span>
+        <div class="info-box">
+          <span class="ico">💡</span>
           <p>
-            <strong>Why wait?</strong> We're verifying the file and preparing a secure link.
-            Your download will be ready in a moment — use this time to check out the synopsis above!
+            <strong>Why the wait?</strong> We're verifying the file and
+            preparing a secure link. Use this time to read the synopsis —
+            your download will be ready shortly!
           </p>
         </div>
 
-        <button class="dl-btn locked" id="dlBtn" disabled>
+        <button class="dl-btn locked" id="dlBtn" disabled aria-label="Download locked">
           🔒 &nbsp;Download Locked
         </button>
 
-        <a class="buy-link" href="${esc(buyLink)}" target="_blank" rel="noopener noreferrer">
+        <a class="buy-link" href="${esc(buyLink)}"
+           target="_blank" rel="noopener noreferrer">
           🛒 &nbsp;Buy Paperback on Amazon
         </a>
+
       </div>
     `;
 
-    // Start countdown
     startCountdown(fileId, title);
   }
 
   /* ════════════════════════════════════════════
-     COUNTDOWN TIMER
+     COUNTDOWN
   ════════════════════════════════════════════ */
-  const CIRCUMFERENCE = 2 * Math.PI * 35; // ≈ 219.9
+  const C = 2 * Math.PI * 36; // circumference ≈ 226.2
 
   function startCountdown(fileId, title) {
-    clearInterval(countdownTimer);
+    clearInterval(cdTimer);
+    let rem = COUNTDOWN_SEC;
 
-    let remaining = COUNTDOWN_SEC;
-    const ringFill     = document.getElementById('ringFill');
-    const countdownNum = document.getElementById('countdownNum');
-    const countdownLbl = document.getElementById('countdownLabel');
-    const secWord      = document.getElementById('secWord');
-    const dlBtn        = document.getElementById('dlBtn');
+    const ringFill = document.getElementById('ringFill');
+    const cNum     = document.getElementById('cNum');
+    const cLabel   = document.getElementById('cLabel');
+    const cSec     = document.getElementById('cSec');
+    const dlBtn    = document.getElementById('dlBtn');
 
-    // Init ring
-    ringFill.style.strokeDasharray  = CIRCUMFERENCE;
+    ringFill.style.strokeDasharray  = C;
     ringFill.style.strokeDashoffset = 0;
 
-    function tick() {
-      remaining--;
+    cdTimer = setInterval(() => {
+      rem--;
+      // Ring drains clockwise
+      ringFill.style.strokeDashoffset = C * (1 - rem / COUNTDOWN_SEC);
+      cNum.textContent = rem > 0 ? rem : '';
 
-      // Update ring (drains from full to empty)
-      const progress = remaining / COUNTDOWN_SEC;
-      ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
-
-      // Update number
-      countdownNum.textContent = remaining;
-
-      // Update label
-      if (remaining > 0) {
-        secWord.textContent = `${remaining} second${remaining !== 1 ? 's' : ''}`;
+      if (cSec && rem > 0) {
+        cSec.textContent = `${rem} second${rem !== 1 ? 's' : ''}`;
       }
 
-      if (remaining <= 0) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-        unlockDownload(fileId, title, ringFill, countdownNum, countdownLbl, dlBtn);
+      if (rem <= 0) {
+        clearInterval(cdTimer); cdTimer = null;
+        unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn);
       }
-    }
-
-    countdownTimer = setInterval(tick, 1000);
+    }, 1000);
   }
 
-  function unlockDownload(fileId, title, ringFill, countdownNum, countdownLbl, dlBtn) {
-    // Ring turns green
+  function unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn) {
     ringFill.classList.add('done');
-    countdownNum.textContent = '✓';
-    countdownNum.classList.add('done');
-    countdownLbl.innerHTML = '<strong style="color:#4CAF7D">Your download is ready!</strong>';
+    cNum.textContent = '✓';
+    cNum.classList.add('done');
+    cLabel.innerHTML = '<strong style="color:var(--green)">✅ Your download is ready!</strong>';
 
-    // Unlock button with pulse animation
-    dlBtn.disabled = false;
-    dlBtn.className = 'dl-btn unlocked';
-    dlBtn.innerHTML = '📥 &nbsp;Download Now';
+    dlBtn.disabled   = false;
+    dlBtn.className  = 'dl-btn unlocked';
+    dlBtn.innerHTML  = '📥 &nbsp;Download Now — Free';
 
-    // Pulse effect to draw attention
-    dlBtn.animate([
-      { transform: 'scale(1)',    boxShadow: '0 4px 24px rgba(201,168,76,.35)' },
-      { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.55)' },
-      { transform: 'scale(1)',    boxShadow: '0 4px 24px rgba(201,168,76,.35)' },
-    ], { duration: 600, iterations: 3, easing: 'ease-in-out' });
+    // Attention pulse × 3
+    if (dlBtn.animate) {
+      dlBtn.animate([
+        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
+        { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.6)' },
+        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
+      ], { duration: 550, iterations: 3, easing: 'ease-in-out' });
+    }
 
     dlBtn.addEventListener('click', () => handleDownload(dlBtn, fileId, title), { once: true });
   }
 
   /* ════════════════════════════════════════════
-     HANDLE DOWNLOAD  — Bulletproof Deep Link
-  ════════════════════════════════════════════ */
-  function handleDownload(btn, fileId, title) {
-    if (!fileId) { showToast('⚠️ File ID missing.'); return; }
+     DEEP LINK — the correct way inside Telegram
+     ─────────────────────────────────────────
+     WRONG:  window.location.href = 'tg://...'
+             → silently does nothing in WebView
 
+     RIGHT:  tg.openTelegramLink('https://t.me/...')
+             → Telegram opens the bot chat natively
+
+     tg.close() after ~300ms closes the Mini App
+     so the user lands directly in the bot chat
+     and sees the file being sent.
+  ════════════════════════════════════════════ */
+  function openBotLink(fileId) {
+    const url = `https://t.me/${BOT_USERNAME}?start=file_${fileId}`;
+
+    if (tg && typeof tg.openTelegramLink === 'function') {
+      tg.openTelegramLink(url);
+      setTimeout(() => { try { tg.close(); } catch(_){} }, 350);
+    } else {
+      // Browser / fallback (testing outside Telegram)
+      window.open(url, '_blank');
+    }
+  }
+
+  /* ════════════════════════════════════════════
+     AD COOLDOWN + TIMEOUT
+     ─────────────────────────────────────────
+     Monetag flags accounts when interstitials
+     are shown < 30 s apart. We:
+       1. Track lastAdShownAt timestamp
+       2. Skip the ad (not the download) if < 30 s
+       3. Race ad vs 8 s timeout so a slow/stuck
+          ad SDK never blocks file delivery
+       4. Always deliver the file on resolve OR
+          reject — user first, monetisation second
+  ════════════════════════════════════════════ */
+  let lastAdAt        = 0;
+  const AD_COOLDOWN   = 30_000;   // 30 s
+  const AD_TIMEOUT    = 8_000;    // 8 s max wait
+  let   dlInProgress  = false;
+
+  function handleDownload(btn, fileId, title) {
+    if (!fileId)       { showToast('⚠️ File ID missing.'); return; }
+    if (dlInProgress)  { showToast('⏳ Already opening…'); return; }
+
+    dlInProgress    = true;
     btn.className   = 'dl-btn processing';
     btn.innerHTML   = '⏳ &nbsp;Opening…';
     btn.disabled    = true;
 
-    // Remove '@' just in case it was accidentally added in CONFIG
-    const cleanBotName = GoogleBookxSearchBot.replace('@', '');
-    const deepLink = `https://t.me/${cleanBotName}?start=webdl_${fileId}`;
+    const now      = Date.now();
+    const canAd    = (now - lastAdAt) >= AD_COOLDOWN;
+    let   adPromise;
 
-    let linkOpened = false;
-    
-    // Safely open the bot using the best available method
-    const openLink = () => {
-      if (linkOpened) return;
-      linkOpened = true;
-      try {
-        if (window.Telegram?.WebApp?.openTelegramLink) {
-          window.Telegram.WebApp.openTelegramLink(deepLink);
-        } else {
-          window.location.href = `tg://resolve?domain=${cleanBotName}&start=webdl_${fileId}`;
-        }
-      } catch (e) {
-        window.location.href = deepLink;
-      }
-    };
+    if (!canAd) {
+      // Too soon — skip ad silently, still deliver
+      adPromise = Promise.resolve('cooldown');
 
-    // SAFETY TIMER: Force open the bot after 1.5s NO MATTER WHAT happens with the ad
-    const forceOpenTimer = setTimeout(openLink, 1500);
+    } else if (typeof show_11064455 === 'function') {
+      const adCall = show_11064455()
+        .then(() => { lastAdAt = Date.now(); return 'shown'; })
+        .catch(() => 'blocked');                          // Monetag fraud reject
 
-    // Try to load Monetag Ad
-    if (typeof show_11064455 === 'function') {
-      show_11064455()
-        .then(() => { 
-           clearTimeout(forceOpenTimer); 
-           setTimeout(openLink, 200); // Small delay after ad closes
-        })
-        .catch(() => { 
-           clearTimeout(forceOpenTimer); 
-           openLink(); // If ad is blocked/frequency capped, open instantly
-        });
+      const timeout = new Promise(r =>
+        setTimeout(() => r('timeout'), AD_TIMEOUT)
+      );
+
+      adPromise = Promise.race([adCall, timeout]);
+
     } else {
-      clearTimeout(forceOpenTimer);
-      openLink();
+      adPromise = Promise.resolve('no-sdk');
     }
 
-    // Restore the download button after 4 seconds
-    setTimeout(() => {
-      btn.className  = 'dl-btn unlocked';
-      btn.innerHTML  = '📥 &nbsp;Download Again';
-      btn.disabled   = false;
-      btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
-    }, 4000);
-  }
+    // ★ File ALWAYS delivered regardless of ad outcome
+    adPromise.finally(() => {
+      dlInProgress = false;
+      setTimeout(() => {
+        openBotLink(fileId);
 
+        // Restore button after 5 s (if user comes back)
+        setTimeout(() => {
+          btn.className = 'dl-btn unlocked';
+          btn.innerHTML = '📥 &nbsp;Download Again';
+          btn.disabled  = false;
+          btn.addEventListener('click',
+            () => handleDownload(btn, fileId, title), { once: true });
+        }, 5000);
+      }, 280);
+    });
+  }
 
   /* ════════════════════════════════════════════
      SYNOPSIS TOGGLE
@@ -1049,17 +1199,16 @@
     const el  = document.getElementById('synText');
     const btn = document.getElementById('readMoreBtn');
     if (!el || !btn) return;
-    const expanded = el.classList.toggle('synopsis-collapsed');
-    btn.textContent = expanded ? 'Read more ▾' : 'Show less ▴';
-    // "expanded" is flipped here because toggle returns the new state
-    btn.textContent = el.classList.contains('synopsis-collapsed') ? 'Read more ▾' : 'Show less ▴';
+    el.classList.toggle('synopsis-collapsed');
+    btn.textContent = el.classList.contains('synopsis-collapsed')
+      ? 'Read more ▾' : 'Show less ▴';
   }
 
   /* ════════════════════════════════════════════
      TOAST
   ════════════════════════════════════════════ */
   let toastT = null;
-  function showToast(msg, ms = 3000) {
+  function showToast(msg, ms = 3200) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
@@ -1068,16 +1217,24 @@
   }
 
   /* ════════════════════════════════════════════
-     HELPERS
+     HTML ESCAPE
   ════════════════════════════════════════════ */
   function esc(str) {
     return String(str || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
   }
 
-  // Autofocus
-  setTimeout(() => searchInput.focus(), 200);
+  /* ════════════════════════════════════════════
+     ALSO fix the api.py cover URL on the backend
+     ─────────────────────────────────────────
+     Add this to fetch_book_metadata() in api.py:
+       cover = cover.replace('http://','https://')
+       cover = re.sub(r'&zoom=\d+','',cover)
+     (Already in the api.py we wrote — just a reminder)
+  ════════════════════════════════════════════ */
+
   </script>
 </body>
 </html>
