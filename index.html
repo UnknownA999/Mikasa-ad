@@ -983,7 +983,7 @@
   }
 
   /* ════════════════════════════════════════════
-     HANDLE DOWNLOAD  — interstitial → deep link
+     HANDLE DOWNLOAD  — Bulletproof Deep Link
   ════════════════════════════════════════════ */
   function handleDownload(btn, fileId, title) {
     if (!fileId) { showToast('⚠️ File ID missing.'); return; }
@@ -992,34 +992,53 @@
     btn.innerHTML   = '⏳ &nbsp;Opening…';
     btn.disabled    = true;
 
-    // FIX: Standard t.me link use karo taaki Telegram WebApp SDK isko samajh sake
-    const deepLink = `https://t.me/${GoogleBookxSearchBot}?start=webdl_${fileId}`;
+    // Remove '@' just in case it was accidentally added in CONFIG
+    const cleanBotName = GoogleBookxSearchBot.replace('@', '');
+    const deepLink = `https://t.me/${cleanBotName}?start=webdl_${fileId}`;
 
-    // Helper function to safely open the link inside or outside Telegram
+    let linkOpened = false;
+    
+    // Safely open the bot using the best available method
     const openLink = () => {
-      if (window.Telegram?.WebApp?.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(deepLink); // Mini App method
-      } else {
-        window.location.href = deepLink; // Normal Browser method
+      if (linkOpened) return;
+      linkOpened = true;
+      try {
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+          window.Telegram.WebApp.openTelegramLink(deepLink);
+        } else {
+          window.location.href = `tg://resolve?domain=${cleanBotName}&start=webdl_${fileId}`;
+        }
+      } catch (e) {
+        window.location.href = deepLink;
       }
     };
 
-    const adPromise = (typeof show_11064455 === 'function')
-      ? show_11064455()
-      : Promise.resolve();
+    // SAFETY TIMER: Force open the bot after 1.5s NO MATTER WHAT happens with the ad
+    const forceOpenTimer = setTimeout(openLink, 1500);
 
-    adPromise
-      .then(() => { setTimeout(openLink, 180); })
-      .catch(openLink)
-      .finally(() => {
-        // Restore after 4s in case user comes back
-        setTimeout(() => {
-          btn.className  = 'dl-btn unlocked';
-          btn.innerHTML  = '📥 &nbsp;Download Again';
-          btn.disabled   = false;
-          btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
-        }, 4000);
-      });
+    // Try to load Monetag Ad
+    if (typeof show_11064455 === 'function') {
+      show_11064455()
+        .then(() => { 
+           clearTimeout(forceOpenTimer); 
+           setTimeout(openLink, 200); // Small delay after ad closes
+        })
+        .catch(() => { 
+           clearTimeout(forceOpenTimer); 
+           openLink(); // If ad is blocked/frequency capped, open instantly
+        });
+    } else {
+      clearTimeout(forceOpenTimer);
+      openLink();
+    }
+
+    // Restore the download button after 4 seconds
+    setTimeout(() => {
+      btn.className  = 'dl-btn unlocked';
+      btn.innerHTML  = '📥 &nbsp;Download Again';
+      btn.disabled   = false;
+      btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
+    }, 4000);
   }
 
 
