@@ -129,10 +129,11 @@
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      /* bottom padding = search bar + ad + breathing room */
-      padding: 16px 14px calc(var(--search-h) + var(--ad-h) + 16px);
+      /* Massive bottom padding so results scroll completely above search bar */
+      padding: 16px 14px 180px 14px;
       -webkit-overflow-scrolling: touch;
     }
+
 
     /* ── CENTERED FLOATING SEARCH BAR ── */
     #searchBar {
@@ -1101,46 +1102,33 @@
   }
 
   /* ════════════════════════════════════════════
-     DEEP LINK — the correct way inside Telegram
-     ─────────────────────────────────────────
-     WRONG:  window.location.href = 'tg://...'
-             → silently does nothing in WebView
-
-     RIGHT:  tg.openTelegramLink('https://t.me/...')
-             → Telegram opens the bot chat natively
-
-     tg.close() after ~300ms closes the Mini App
-     so the user lands directly in the bot chat
-     and sees the file being sent.
+     DEEP LINK — The Force-Open Method
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    const url = `https://t.me/${GoogleBookxSearchBot}?start=webdl_${fileId}`;
+    const rawTgLink = `tg://resolve?domain=${BOT_USERNAME}&start=webdl_${fileId}`;
+    const webTgLink = `https://t.me/${BOT_USERNAME}?start=webdl_${fileId}`;
 
+    // 1. Direct Telegram URI (Best for Mini Apps)
+    try { window.location.href = rawTgLink; } catch(e) {}
 
-    if (tg && typeof tg.openTelegramLink === 'function') {
-      tg.openTelegramLink(url);
-      setTimeout(() => { try { tg.close(); } catch(_){} }, 350);
-    } else {
-      // Browser / fallback (testing outside Telegram)
-      window.open(url, '_blank');
-    }
+    // 2. Fallback SDK method
+    setTimeout(() => {
+      if (tg && typeof tg.openTelegramLink === 'function') {
+        try { tg.openTelegramLink(webTgLink); } catch(e) {}
+      }
+    }, 150);
+
+    // 3. Force Close Mini App to return user to chat
+    setTimeout(() => {
+      try { tg.close(); } catch(e) {}
+    }, 500);
   }
 
   /* ════════════════════════════════════════════
-     AD COOLDOWN + TIMEOUT
-     ─────────────────────────────────────────
-     Monetag flags accounts when interstitials
-     are shown < 30 s apart. We:
-       1. Track lastAdShownAt timestamp
-       2. Skip the ad (not the download) if < 30 s
-       3. Race ad vs 8 s timeout so a slow/stuck
-          ad SDK never blocks file delivery
-       4. Always deliver the file on resolve OR
-          reject — user first, monetisation second
+     AD COOLDOWN + BULLETPROOF DOWNLOAD
   ════════════════════════════════════════════ */
   let lastAdAt        = 0;
   const AD_COOLDOWN   = 30_000;   // 30 s
-  const AD_TIMEOUT    = 8_000;    // 8 s max wait
   let   dlInProgress  = false;
 
   function handleDownload(btn, fileId, title) {
@@ -1154,43 +1142,49 @@
 
     const now      = Date.now();
     const canAd    = (now - lastAdAt) >= AD_COOLDOWN;
-    let   adPromise;
+    let adResolved = false;
 
-    if (!canAd) {
-      // Too soon — skip ad silently, still deliver
-      adPromise = Promise.resolve('cooldown');
+    // SAFETY TIMER: Agar 3.5 seconds tak Ad load nahi hua, toh zabardasti File bhej do
+    const forceOpen = setTimeout(() => {
+        if(!adResolved) {
+            adResolved = true;
+            dlInProgress = false;
+            openBotLink(fileId);
+            resetBtn();
+        }
+    }, 3500);
 
-    } else if (typeof show_11064455 === 'function') {
-      const adCall = show_11064455()
-        .then(() => { lastAdAt = Date.now(); return 'shown'; })
-        .catch(() => 'blocked');                          // Monetag fraud reject
-
-      const timeout = new Promise(r =>
-        setTimeout(() => r('timeout'), AD_TIMEOUT)
-      );
-
-      adPromise = Promise.race([adCall, timeout]);
-
-    } else {
-      adPromise = Promise.resolve('no-sdk');
-    }
-
-    // ★ File ALWAYS delivered regardless of ad outcome
-    adPromise.finally(() => {
-      dlInProgress = false;
-      setTimeout(() => {
-        openBotLink(fileId);
-
-        // Restore button after 5 s (if user comes back)
+    function resetBtn() {
         setTimeout(() => {
           btn.className = 'dl-btn unlocked';
           btn.innerHTML = '📥 &nbsp;Download Again';
           btn.disabled  = false;
-          btn.addEventListener('click',
-            () => handleDownload(btn, fileId, title), { once: true });
-        }, 5000);
-      }, 280);
-    });
+          btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
+        }, 3000);
+    }
+
+    function triggerDownload() {
+        if(!adResolved) {
+            adResolved = true;
+            clearTimeout(forceOpen);
+            dlInProgress = false;
+            setTimeout(() => {
+                openBotLink(fileId);
+                resetBtn();
+            }, 300);
+        }
+    }
+
+    // Try showing Ad
+    if (!canAd) {
+      triggerDownload();
+    } else if (typeof show_11064455 === 'function') {
+      show_11064455()
+        .then(() => { lastAdAt = Date.now(); triggerDownload(); })
+        .catch(() => { triggerDownload(); }); // If Ad fails, still download
+    } else {
+      triggerDownload();
+    }
   }
 
   /* ════════════════════════════════════════════
