@@ -1102,30 +1102,31 @@
   }
 
   /* ════════════════════════════════════════════
-     DEEP LINK — Payload Preserving Method
+     DEEP LINK — The Official & Safe Method
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    const cleanBot = BOT_USERNAME.replace('@', '').trim();
+    const cleanBot = GoogleBookxSearchBot.replace('@', '').trim();
     
-    // NATIVE URIs never strip the payload
-    const tgUri = `tg://resolve?domain=${cleanBot}&start=webdl_${fileId}`;
-    const webUri = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
+    // Sirf official https://t.me/ wala link allow hota hai Mini App mein
+    const webLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
 
-    // 1. First attempt: Direct OS level deep link (Fastest & 100% payload safe)
-    window.location.href = tgUri;
-
-    // 2. Fallback: Telegram SDK method if OS link is ignored
-    setTimeout(() => {
-      if (tg && typeof tg.openTelegramLink === 'function') {
-        tg.openTelegramLink(webUri);
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Yeh Telegram ka official tareeka hai bot chat mein redirect karne ka
+        window.Telegram.WebApp.openTelegramLink(webLink);
+        
+        // 🔴 NO tg.close() - Hum app ko khud band nahi karenge, 
+        // Telegram khud user ko chat mein le jaakar link read karega!
       } else {
-        window.location.href = webUri;
+        // Agar user normal browser se use kar raha hai
+        window.location.href = webLink;
       }
-    }, 200);
-
-    // 🔴 STRICT RULE: NO tg.close() here! 
-    // Letting Telegram close the app naturally ensures the payload is delivered.
+    } catch (e) {
+      // Agar kuch bhi error aaye toh seedha URL open kar do
+      window.location.href = webLink;
+    }
   }
+
 
 
   /* ════════════════════════════════════════════
