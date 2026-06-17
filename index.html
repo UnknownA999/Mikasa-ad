@@ -1102,23 +1102,31 @@
   }
 
   /* ════════════════════════════════════════════
-     DEEP LINK — Reliable Method
+     DEEP LINK — Payload Preserving Method
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    // Ensure no '@' symbol breaks the URL
     const cleanBot = BOT_USERNAME.replace('@', '').trim();
-    const webTgLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
+    
+    // NATIVE URIs never strip the payload
+    const tgUri = `tg://resolve?domain=${cleanBot}&start=webdl_${fileId}`;
+    const webUri = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
 
-    if (tg && typeof tg.openTelegramLink === 'function') {
-      tg.openTelegramLink(webTgLink);
-      // Give Telegram 1.5 seconds to read the link properly BEFORE closing the Mini App
-      setTimeout(() => {
-        try { tg.close(); } catch(e) {}
-      }, 1500); 
-    } else {
-      window.location.href = webTgLink;
-    }
+    // 1. First attempt: Direct OS level deep link (Fastest & 100% payload safe)
+    window.location.href = tgUri;
+
+    // 2. Fallback: Telegram SDK method if OS link is ignored
+    setTimeout(() => {
+      if (tg && typeof tg.openTelegramLink === 'function') {
+        tg.openTelegramLink(webUri);
+      } else {
+        window.location.href = webUri;
+      }
+    }, 200);
+
+    // 🔴 STRICT RULE: NO tg.close() here! 
+    // Letting Telegram close the app naturally ensures the payload is delivered.
   }
+
 
   /* ════════════════════════════════════════════
      AD COOLDOWN + PROPER DOWNLOAD
