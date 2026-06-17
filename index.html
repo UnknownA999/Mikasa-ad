@@ -1102,30 +1102,26 @@
   }
 
   /* ════════════════════════════════════════════
-     DEEP LINK — The Force-Open Method
+     DEEP LINK — Reliable Method
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    const rawTgLink = `tg://resolve?domain=${BOT_USERNAME}&start=webdl_${fileId}`;
-    const webTgLink = `https://t.me/${BOT_USERNAME}?start=webdl_${fileId}`;
+    // Ensure no '@' symbol breaks the URL
+    const cleanBot = BOT_USERNAME.replace('@', '').trim();
+    const webTgLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
 
-    // 1. Direct Telegram URI (Best for Mini Apps)
-    try { window.location.href = rawTgLink; } catch(e) {}
-
-    // 2. Fallback SDK method
-    setTimeout(() => {
-      if (tg && typeof tg.openTelegramLink === 'function') {
-        try { tg.openTelegramLink(webTgLink); } catch(e) {}
-      }
-    }, 150);
-
-    // 3. Force Close Mini App to return user to chat
-    setTimeout(() => {
-      try { tg.close(); } catch(e) {}
-    }, 500);
+    if (tg && typeof tg.openTelegramLink === 'function') {
+      tg.openTelegramLink(webTgLink);
+      // Give Telegram 1.5 seconds to read the link properly BEFORE closing the Mini App
+      setTimeout(() => {
+        try { tg.close(); } catch(e) {}
+      }, 1500); 
+    } else {
+      window.location.href = webTgLink;
+    }
   }
 
   /* ════════════════════════════════════════════
-     AD COOLDOWN + BULLETPROOF DOWNLOAD
+     AD COOLDOWN + PROPER DOWNLOAD
   ════════════════════════════════════════════ */
   let lastAdAt        = 0;
   const AD_COOLDOWN   = 30_000;   // 30 s
@@ -1140,21 +1136,12 @@
     btn.innerHTML   = '⏳ &nbsp;Opening…';
     btn.disabled    = true;
 
-    const now      = Date.now();
-    const canAd    = (now - lastAdAt) >= AD_COOLDOWN;
-    let adResolved = false;
+    const now   = Date.now();
+    const canAd = (now - lastAdAt) >= AD_COOLDOWN;
 
-    // SAFETY TIMER: Agar 3.5 seconds tak Ad load nahi hua, toh zabardasti File bhej do
-    const forceOpen = setTimeout(() => {
-        if(!adResolved) {
-            adResolved = true;
-            dlInProgress = false;
-            openBotLink(fileId);
-            resetBtn();
-        }
-    }, 3500);
-
-    function resetBtn() {
+    function triggerDownload() {
+        dlInProgress = false;
+        openBotLink(fileId);
         setTimeout(() => {
           btn.className = 'dl-btn unlocked';
           btn.innerHTML = '📥 &nbsp;Download Again';
@@ -1163,29 +1150,25 @@
         }, 3000);
     }
 
-    function triggerDownload() {
-        if(!adResolved) {
-            adResolved = true;
-            clearTimeout(forceOpen);
-            dlInProgress = false;
-            setTimeout(() => {
-                openBotLink(fileId);
-                resetBtn();
-            }, 300);
-        }
-    }
-
-    // Try showing Ad
+    // Wait for the Ad to naturally finish
     if (!canAd) {
       triggerDownload();
     } else if (typeof show_11064455 === 'function') {
+      // This will wait EXACTLY until the 15-sec ad is finished or closed by the user
       show_11064455()
-        .then(() => { lastAdAt = Date.now(); triggerDownload(); })
-        .catch(() => { triggerDownload(); }); // If Ad fails, still download
+        .then(() => { 
+            lastAdAt = Date.now(); 
+            triggerDownload(); 
+        })
+        .catch(() => { 
+            // If Monetag blocks the ad (frequency cap), skip straight to download
+            triggerDownload(); 
+        });
     } else {
       triggerDownload();
     }
   }
+
 
   /* ════════════════════════════════════════════
      SYNOPSIS TOGGLE
