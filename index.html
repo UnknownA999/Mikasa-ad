@@ -943,7 +943,7 @@
   }
 
   /* ════════════════════════════════════════════
-     HARDCODED NATIVE DOWNLOAD LOGIC
+     THE BULLETPROOF NATIVE DOWNLOAD LOGIC
   ════════════════════════════════════════════ */
   let lastAdAt = 0;
   const AD_COOLDOWN = 30_000;
@@ -955,17 +955,49 @@
     const canAd = (now - lastAdAt) >= AD_COOLDOWN;
     let opened = false;
 
-    // 🔥 100% Hardcoded URIs - No variables, no string replaces. 🔥
+    // 🔥 100% Safe Web URI (No tg:// protocols) 🔥
     const webUri = `https://t.me/GoogleBookxSearchBot?start=webdl_${fileId}`;
-    const tgUri = `tg://resolve?domain=GoogleBookxSearchBot&start=webdl_${fileId}`;
 
-    // NATIVE OS FAIL-SAFE (Replaces the button entirely)
+    // 1. NATIVE HTML FAIL-SAFE (Replaces the button)
     const aBtn = document.createElement('a');
-    aBtn.href = tgUri;
+    aBtn.href = webUri;
+    aBtn.target = '_blank'; // 🔥 THE MAGIC KEY: Forces OS to handle the link, bypassing WebView bugs
     aBtn.className = 'dl-btn unlocked';
     aBtn.style.textDecoration = 'none';
     aBtn.innerHTML = '🚀 &nbsp;Send to Telegram';
     btn.parentNode.replaceChild(aBtn, btn);
+
+    function triggerDownload() {
+        if (opened) return;
+        opened = true;
+        
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                // Official Method
+                window.Telegram.WebApp.openTelegramLink(webUri);
+                // Mini App ko force-close karo taaki chat samne aa jaye
+                setTimeout(() => { window.Telegram.WebApp.close(); }, 150);
+            } else {
+                window.open(webUri, '_blank');
+            }
+        } catch(e) {
+            window.open(webUri, '_blank');
+        }
+    }
+
+    // 2. Ad Logic & Anti-Freeze Timer
+    if (canAd && typeof show_11064455 === 'function') {
+      lastAdAt = Date.now();
+      const safeTimer = setTimeout(triggerDownload, 16000); 
+      
+      show_11064455()
+        .then(() => { clearTimeout(safeTimer); triggerDownload(); })
+        .catch(() => { clearTimeout(safeTimer); triggerDownload(); });
+    } else {
+      triggerDownload();
+    }
+  }
+
 
     function triggerDownload() {
         if (opened) return;
