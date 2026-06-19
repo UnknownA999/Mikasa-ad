@@ -1105,78 +1105,66 @@
      DEEP LINK — The Official & Safe Method
   ════════════════════════════════════════════ */
   function openBotLink(fileId) {
-    const cleanBot = GoogleBookxSearchBot.replace('@', '').trim();
-    
-    // Sirf official https://t.me/ wala link allow hota hai Mini App mein
+    const cleanBot = BOT_USERNAME.replace('@', '').trim();
     const webLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
 
     try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        // Yeh Telegram ka official tareeka hai bot chat mein redirect karne ka
+      if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
         window.Telegram.WebApp.openTelegramLink(webLink);
-        
-        // 🔴 NO tg.close() - Hum app ko khud band nahi karenge, 
-        // Telegram khud user ko chat mein le jaakar link read karega!
       } else {
-        // Agar user normal browser se use kar raha hai
         window.location.href = webLink;
       }
     } catch (e) {
-      // Agar kuch bhi error aaye toh seedha URL open kar do
       window.location.href = webLink;
     }
   }
 
-
-
   /* ════════════════════════════════════════════
-     AD COOLDOWN + PROPER DOWNLOAD
+     AD COOLDOWN + ANTI-FREEZE DOWNLOAD
   ════════════════════════════════════════════ */
-  let lastAdAt        = 0;
-  const AD_COOLDOWN   = 30_000;   // 30 s
-  let   dlInProgress  = false;
+  let lastAdAt = 0;
+  const AD_COOLDOWN = 30_000; // 30 s
 
   function handleDownload(btn, fileId, title) {
-    if (!fileId)       { showToast('⚠️ File ID missing.'); return; }
-    if (dlInProgress)  { showToast('⏳ Already opening…'); return; }
+    if (!fileId) { showToast('⚠️ File ID missing.'); return; }
 
-    dlInProgress    = true;
-    btn.className   = 'dl-btn processing';
-    btn.innerHTML   = '⏳ &nbsp;Opening…';
-    btn.disabled    = true;
-
-    const now   = Date.now();
+    const now = Date.now();
     const canAd = (now - lastAdAt) >= AD_COOLDOWN;
 
-    function triggerDownload() {
-        dlInProgress = false;
+    // 1. Immediately change the button to a manual fallback
+    // Agar Monetag freeze hota hai, toh user ispe click karke direct bot open kar sakta hai!
+    btn.className = 'dl-btn unlocked';
+    btn.innerHTML = '🚀 &nbsp;Send to Telegram';
+    btn.disabled = false;
+    btn.onclick = function() {
         openBotLink(fileId);
-        setTimeout(() => {
-          btn.className = 'dl-btn unlocked';
-          btn.innerHTML = '📥 &nbsp;Download Again';
-          btn.disabled  = false;
-          btn.addEventListener('click', () => handleDownload(btn, fileId, title), { once: true });
-        }, 3000);
+    };
+
+    // 2. Auto-open logic
+    let opened = false;
+    function triggerDownload() {
+        if (opened) return;
+        opened = true;
+        openBotLink(fileId);
     }
 
-    // Wait for the Ad to naturally finish
-    if (!canAd) {
-      triggerDownload();
-    } else if (typeof show_11064455 === 'function') {
-      // This will wait EXACTLY until the 15-sec ad is finished or closed by the user
+    // 3. Show Ad & setup Anti-Freeze Timer
+    if (canAd && typeof show_11064455 === 'function') {
+      lastAdAt = Date.now();
+      
+      // ANTI-FREEZE: Ad 15 seconds ka hai. Agar Monetag freeze ho jaye, 
+      // toh yeh timer exactly 16.5 seconds baad automatically redirect kar dega.
+      setTimeout(triggerDownload, 16500);
+
       show_11064455()
-        .then(() => { 
-            lastAdAt = Date.now(); 
-            triggerDownload(); 
-        })
-        .catch(() => { 
-            // If Monetag blocks the ad (frequency cap), skip straight to download
-            triggerDownload(); 
-        });
+        .then(triggerDownload)
+        .catch(triggerDownload);
     } else {
+      // Agar ad ka cooldown chal raha hai, toh bina ruke redirect karo
       triggerDownload();
     }
   }
+
 
 
   /* ════════════════════════════════════════════
