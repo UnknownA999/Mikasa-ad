@@ -18,7 +18,7 @@
 
   <style>
     /* ══════════════════════════════════════════
-       DESIGN TOKENS>
+       DESIGN TOKENS
     ══════════════════════════════════════════ */
     :root {
       --bg:          #0F1117;
@@ -34,7 +34,7 @@
       --text-2:      #9A97A8;
       --text-3:      #5C5A6E;
       --ad-h:        60px;
-      --search-h:    64px;   /* bottom search bar height */
+      --search-h:    64px;
       --r-card:      16px;
       --r-btn:       12px;
       --font-d:      'Playfair Display', Georgia, serif;
@@ -42,9 +42,6 @@
       --ease:        0.22s cubic-bezier(.4,0,.2,1);
     }
 
-    /* ══════════════════════════════════════════
-       RESET
-    ══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
@@ -58,9 +55,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ══════════════════════════════════════════
-       PAGE SYSTEM
-    ══════════════════════════════════════════ */
     .page {
       position: fixed;
       inset: 0;
@@ -68,28 +62,10 @@
       flex-direction: column;
       overflow: hidden;
       background: var(--bg);
-      /* sits above ad, below search bar space handled per page */
       transition: transform 0.32s cubic-bezier(.4,0,.2,1), opacity 0.32s ease;
     }
     .page.hidden-right { transform: translateX(100%); opacity: 0; pointer-events: none; }
     .page.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
-
-    /* ══════════════════════════════════════════
-       SEARCH PAGE LAYOUT
-       ┌──────────────┐
-       │  Brand header│  fixed top
-       ├──────────────┤
-       │   Results    │  scrollable, padded
-       │   / Welcome  │  bottom: ad + searchbar
-       ├──────────────┤
-       │  Search bar  │  fixed above ad
-       ├──────────────┤
-       │  Banner Ad   │  fixed bottom
-       └──────────────┘
-    ══════════════════════════════════════════ */
-    #searchPage {
-      /* content area: below brand header, above search bar + ad */
-    }
 
     .s-brand {
       flex-shrink: 0;
@@ -124,21 +100,17 @@
       font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
     }
 
-    /* Scrollable content area */
     .s-body {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      /* Massive bottom padding so results scroll completely above search bar */
       padding: 16px 14px 180px 14px;
       -webkit-overflow-scrolling: touch;
     }
 
-
-    /* ── CENTERED FLOATING SEARCH BAR ── */
     #searchBar {
       position: fixed;
-      bottom: calc(var(--ad-h) + 20px); /* Ad ke theek upar center mein float karega */
+      bottom: calc(var(--ad-h) + 20px);
       left: 50%;
       transform: translateX(-50%);
       width: 92%;
@@ -168,14 +140,14 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1.5px solid var(--border);
-      border-radius: 26px; /* Ekdum perfect curved Capsule shape */
+      border-radius: 26px;
       padding: 0 45px;
       color: var(--text-1);
       font-family: var(--font-u); font-size: 16px;
       outline: none;
       transition: border-color var(--ease), box-shadow var(--ease);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5); /* Premium shadow */
-      text-align: center; /* Placeholder aur typing text bhi center mein rakhega */
+      box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+      text-align: center;
     }
     
     #searchInput:focus {
@@ -195,14 +167,9 @@
     }
     .clear-btn.vis { display: block; }
 
-
-    /* ══════════════════════════════════════════
-       STATES
-    ══════════════════════════════════════════ */
     .state { display: none; text-align: center; }
     .state.on { display: block; }
 
-    /* Welcome */
     .welcome { padding: 28px 16px; }
     .w-emoji {
       font-size: 48px; display: block; margin-bottom: 14px;
@@ -226,7 +193,6 @@
     }
     .chip:active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
 
-    /* Loading */
     .loading-st { padding: 60px 16px; }
     .spinner {
       width: 36px; height: 36px;
@@ -237,19 +203,16 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-st p { color: var(--text-2); font-size: 14px; }
 
-    /* Empty */
     .empty-st { padding: 44px 16px; }
     .empty-st .big { font-size: 46px; display: block; margin-bottom: 14px; opacity: .75; }
     .empty-st h3 { font-family: var(--font-d); font-size: 20px; margin-bottom: 8px; }
     .empty-st p { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 22px; }
 
-    /* Error */
     .error-st { padding: 44px 16px; }
     .error-st .big { font-size: 40px; display: block; margin-bottom: 12px; }
     .error-st h3 { font-size: 17px; margin-bottom: 6px; }
     .error-st p { font-size: 13px; color: var(--text-2); margin-bottom: 18px; }
 
-    /* Results header */
     .res-hdr { display: none; align-items: center; margin-bottom: 14px; }
     .res-hdr.vis { display: flex; }
     .res-count {
@@ -258,9 +221,6 @@
     }
     .res-count span { color: var(--gold); }
 
-    /* ══════════════════════════════════════════
-       SEARCH RESULT CARDS
-    ══════════════════════════════════════════ */
     #results { display: flex; flex-direction: column; gap: 12px; }
 
     .r-card {
@@ -328,9 +288,6 @@
     .r-card:nth-child(4) { animation-delay: .18s; }
     .r-card:nth-child(5) { animation-delay: .23s; }
 
-    /* ══════════════════════════════════════════
-       DETAIL PAGE
-    ══════════════════════════════════════════ */
     .d-header {
       flex-shrink: 0;
       display: flex; align-items: center; gap: 12px;
@@ -362,12 +319,10 @@
     .d-body {
       flex: 1;
       overflow-y: auto; overflow-x: hidden;
-      /* pad bottom for ad bar */
       padding-bottom: var(--ad-h);
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ── Hero ── */
     .d-hero {
       position: relative;
       background: var(--surface);
@@ -425,7 +380,6 @@
       font-size: 11px; color: var(--text-2); font-weight: 500;
     }
 
-    /* ── Synopsis ── */
     .d-section {
       padding: 18px 16px;
       border-bottom: 1px solid var(--border);
@@ -448,12 +402,8 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ══════════════════════════════════════════
-       DOWNLOAD ZONE
-    ══════════════════════════════════════════ */
     .d-dl-section { padding: 22px 16px 28px; }
 
-    /* Countdown ring */
     .countdown-wrap {
       display: flex; flex-direction: column; align-items: center;
       gap: 10px; margin-bottom: 22px;
@@ -481,7 +431,6 @@
       line-height: 1.55;
     }
 
-    /* Info box */
     .info-box {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -493,7 +442,6 @@
     .info-box p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
     .info-box strong { color: var(--text-1); font-weight: 600; }
 
-    /* Download button */
     .dl-btn {
       width: 100%; height: 54px;
       border-radius: var(--r-btn); border: none; cursor: pointer;
@@ -514,13 +462,7 @@
       box-shadow: 0 4px 24px rgba(201,168,76,.38);
     }
     .dl-btn.unlocked:active { transform: scale(0.97); box-shadow: none; }
-    .dl-btn.processing {
-      background: var(--gold-dim);
-      border: 1.5px solid var(--gold);
-      color: var(--gold); cursor: not-allowed; opacity: .85;
-    }
 
-    /* Buy link */
     .buy-link {
       display: flex; align-items: center; justify-content: center; gap: 7px;
       margin-top: 14px; padding: 13px;
@@ -532,7 +474,6 @@
     }
     .buy-link:active { border-color: var(--gold); color: var(--gold); }
 
-    /* CTA buttons */
     .cta {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 0 24px; height: 46px; border-radius: 12px;
@@ -545,9 +486,6 @@
     .cta-gold   { background: var(--gold); color: #0F1117; }
     .cta-ghost  { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-2); }
 
-    /* ══════════════════════════════════════════
-       STICKY BANNER AD  (truly fixed, contained)
-    ══════════════════════════════════════════ */
     #ad-banner {
       position: fixed !important;
       bottom: 0 !important; left: 0 !important; right: 0 !important; top: auto !important;
@@ -562,13 +500,10 @@
       overflow: hidden !important;
       contain: strict;
     }
-    #ad-banner > *        { max-width: 100% !important; max-height: var(--ad-h) !important; overflow: hidden !important; }
+    #ad-banner > * { max-width: 100% !important; max-height: var(--ad-h) !important; overflow: hidden !important; }
     #ad-banner iframe,
     #ad-banner div        { position: static !important; top: auto !important; left: auto !important; transform: none !important; }
 
-    /* ══════════════════════════════════════════
-       TOAST
-    ══════════════════════════════════════════ */
     #toast {
       position: fixed;
       bottom: calc(var(--ad-h) + var(--search-h) + 10px);
@@ -582,9 +517,6 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ══════════════════════════════════════════
-       ACCESSIBILITY
-    ══════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .01ms !important;
@@ -600,12 +532,7 @@
 
 <body>
 
-  <!-- ══════════════════════════════════════════
-       PAGE 1 — SEARCH
-  ══════════════════════════════════════════ -->
   <div id="searchPage" class="page">
-
-    <!-- Brand header (top) -->
     <div class="s-brand">
       <div class="brand-icon">📚</div>
       <div class="brand-text">
@@ -614,15 +541,11 @@
       </div>
     </div>
 
-    <!-- Scrollable content -->
     <div class="s-body">
-
-      <!-- Results bar -->
       <div class="res-hdr" id="resHdr">
         <span class="res-count" id="resCount"></span>
       </div>
 
-      <!-- Welcome state -->
       <div class="state welcome on" id="stWelcome">
         <div class="welcome">
           <span class="w-emoji">✨</span>
@@ -639,18 +562,15 @@
         </div>
       </div>
 
-      <!-- Loading state -->
       <div class="state loading-st" id="stLoading">
         <div class="spinner"></div>
         <p>Searching the library…</p>
       </div>
 
-      <!-- Results state -->
       <div id="stResults" style="display:none">
         <div id="results" role="list" aria-label="Search results"></div>
       </div>
 
-      <!-- Empty state -->
       <div class="state empty-st" id="stEmpty">
         <span class="big">📭</span>
         <h3>Book Not in Database</h3>
@@ -660,38 +580,24 @@
         </a>
       </div>
 
-      <!-- Error state -->
       <div class="state error-st" id="stError">
         <span class="big">⚠️</span>
         <h3>Something went wrong</h3>
         <p id="errMsg">Could not connect to server.</p>
         <button class="cta cta-ghost" onclick="retrySearch()">🔄 &nbsp;Retry</button>
       </div>
+    </div>
+  </div>
 
-    </div><!-- /.s-body -->
-  </div><!-- /#searchPage -->
-
-
-  <!-- ══════════════════════════════════════════
-       PAGE 2 — BOOK DETAIL
-  ══════════════════════════════════════════ -->
   <div id="detailPage" class="page hidden-right">
-
     <div class="d-header">
       <button class="back-btn" id="backBtn" aria-label="Go back">‹</button>
       <span class="d-header-title" id="dHeaderTitle">Book Details</span>
     </div>
 
-    <div class="d-body" id="dBody">
-      <!-- built by buildDetailPage() -->
-    </div>
+    <div class="d-body" id="dBody"></div>
+  </div>
 
-  </div><!-- /#detailPage -->
-
-
-  <!-- ══════════════════════════════════════════
-       SEARCH BAR  (fixed above ad, search page only)
-  ══════════════════════════════════════════ -->
   <div id="searchBar">
     <div class="search-wrap">
       <span class="s-ico">🔍</span>
@@ -704,12 +610,8 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <!-- ══════════════════════════════════════════
-       STICKY BANNER AD
-  ══════════════════════════════════════════ -->
   <div id="ad-banner" aria-label="Advertisement">
     <script>
       (function() {
@@ -721,20 +623,13 @@
     </script>
   </div>
 
-
   <script>
   /* ════════════════════════════════════════════
-     ★  CONFIG  — only place you need to edit  ★
+     ★  HARDCODED CONFIG  ★
   ════════════════════════════════════════════ */
-  const API_BASE      = 'https://mikasa-bookbot.onrender.com';     // your aiohttp backend
-  const BOT_USERNAME  = 'GoogleBookxSearchBot';         // without @
+  const API_BASE      = 'https://mikasa-bookbot.onrender.com';
   const COUNTDOWN_SEC = 15;
 
-  /* ════════════════════════════════════════════
-     TELEGRAM INIT
-     — tg.ready() MUST be called as early as
-       possible so Telegram removes its loader
-  ════════════════════════════════════════════ */
   const tg = window.Telegram?.WebApp;
   try {
     if (tg) {
@@ -744,37 +639,16 @@
       tg.setHeaderColor('#0F1117');
       tg.setBackgroundColor('#0F1117');
     }
-  } catch(e) {
-    try { tg?.ready(); } catch(_) {}
-  }
+  } catch(e) {}
 
-  /* ════════════════════════════════════════════
-     IMAGE PROXY — FIX COVER IMAGES
-     ─────────────────────────────────────────
-     Google Books serves covers over plain HTTP.
-     Telegram's WebView (and most browsers in
-     HTTPS pages) block mixed-content images.
-
-     Fix: force https:// and strip Google's
-     zoom/edge-curl params that shrink the image.
-     If cover is still blank, fall back to
-     Open Library cover API.
-  ════════════════════════════════════════════ */
   function fixCoverUrl(url, isbn, title) {
     if (url) {
-      // Force HTTPS
       url = url.replace(/^http:\/\//i, 'https://');
-      // Remove Google's low-res zoom param
       url = url.replace(/&zoom=\d+/g, '').replace(/\?zoom=\d+&?/g, '?').replace(/\?$/, '');
-      // Bump to larger size (replace zoom=1 thumbnail with zoom=0 for higher res)
       url = url.replace('zoom=1', 'zoom=0');
       return url;
     }
-    // Fallback 1: Open Library by ISBN
-    if (isbn) {
-      return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-    }
-    // Fallback 2: Open Library by title search
+    if (isbn) return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
     if (title) {
       const q = encodeURIComponent(title.replace(/\s+/g, '+'));
       return `https://covers.openlibrary.org/b/title/${q}-M.jpg`;
@@ -782,9 +656,6 @@
     return '';
   }
 
-  /* ════════════════════════════════════════════
-     PAGE ROUTER
-  ════════════════════════════════════════════ */
   const searchPage = document.getElementById('searchPage');
   const detailPage = document.getElementById('detailPage');
   const searchBar  = document.getElementById('searchBar');
@@ -792,30 +663,22 @@
 
   function showSearch() {
     clearInterval(cdTimer); cdTimer = null;
-
     searchPage.classList.remove('hidden-left', 'hidden-right');
     detailPage.classList.add('hidden-right');
     detailPage.classList.remove('hidden-left');
-
-    // Show the bottom search bar
     searchBar.style.display = 'flex';
-
-    if (tg) tg.BackButton.hide();
+    if (tg && tg.BackButton) tg.BackButton.hide();
   }
 
   function showDetail(book) {
     buildDetailPage(book);
-
     searchPage.classList.add('hidden-left');
     searchPage.classList.remove('hidden-right');
     detailPage.classList.remove('hidden-right', 'hidden-left');
-
-    // Hide search bar on detail page
     searchBar.style.display = 'none';
 
-    if (tg) {
+    if (tg && tg.BackButton) {
       tg.BackButton.show();
-      // Use offHandler pattern to avoid stacking listeners
       tg.BackButton.offClick(showSearch);
       tg.BackButton.onClick(showSearch);
     }
@@ -823,9 +686,6 @@
 
   document.getElementById('backBtn').addEventListener('click', showSearch);
 
-  /* ════════════════════════════════════════════
-     SEARCH STATES
-  ════════════════════════════════════════════ */
   const STATES = ['stWelcome','stLoading','stResults','stEmpty','stError'];
 
   function showState(id) {
@@ -843,9 +703,6 @@
 
   showState('stWelcome');
 
-  /* ════════════════════════════════════════════
-     SEARCH LOGIC
-  ════════════════════════════════════════════ */
   let debT = null, lastQ = '', abortCtrl = null;
   const searchInput = document.getElementById('searchInput');
   const clearBtn    = document.getElementById('clearBtn');
@@ -859,7 +716,6 @@
     debT = setTimeout(() => doSearch(q), 420);
   });
 
-  // Allow enter key to search immediately
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       clearTimeout(debT);
@@ -910,9 +766,6 @@
     }
   }
 
-  /* ════════════════════════════════════════════
-     RENDER SEARCH RESULT CARDS
-  ════════════════════════════════════════════ */
   function renderResults(books) {
     const cnt = document.getElementById('results');
     cnt.innerHTML = '';
@@ -953,9 +806,6 @@
     showState('stResults');
   }
 
-  /* ════════════════════════════════════════════
-     BUILD DETAIL PAGE
-  ════════════════════════════════════════════ */
   function buildDetailPage(book) {
     const title    = book.title    || 'Untitled';
     const author   = book.author   || 'Unknown Author';
@@ -985,7 +835,6 @@
          </p>`;
 
     document.getElementById('dBody').innerHTML = `
-
       <div class="d-hero">
         <div class="d-hero-bg" ${bgStyle}></div>
         <div class="d-cover-wrap">${coverHTML}</div>
@@ -1005,7 +854,6 @@
       </div>
 
       <div class="d-dl-section">
-
         <div class="countdown-wrap">
           <div class="ring-wrap">
             <svg class="c-ring" viewBox="0 0 84 84">
@@ -1033,57 +881,85 @@
           🔒 &nbsp;Download Locked
         </button>
 
-        <a class="buy-link" href="${esc(buyLink)}"
-           target="_blank" rel="noopener noreferrer">
+        <a class="buy-link" href="${esc(buyLink)}" target="_blank" rel="noopener noreferrer">
           🛒 &nbsp;Buy Paperback on Amazon
         </a>
-
       </div>
     `;
 
     startCountdown(fileId, title);
   }
 
+  const C = 2 * Math.PI * 36;
 
-  /* ════════════════════════════════════════════
-     DEEP LINK — The Official & Safe Method
-  ════════════════════════════════════════════ */
-  function openBotLink(fileId) {
-    const cleanBot = GoogleBookxSearchBot.replace('@', '').trim();
-    const webLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
+  function startCountdown(fileId, title) {
+    clearInterval(cdTimer);
+    let rem = COUNTDOWN_SEC;
 
-    try {
-      if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
-        window.Telegram.WebApp.openTelegramLink(webLink);
-      } else {
-        window.location.href = webLink;
+    const ringFill = document.getElementById('ringFill');
+    const cNum     = document.getElementById('cNum');
+    const cLabel   = document.getElementById('cLabel');
+    const cSec     = document.getElementById('cSec');
+    const dlBtn    = document.getElementById('dlBtn');
+
+    ringFill.style.strokeDasharray  = C;
+    ringFill.style.strokeDashoffset = 0;
+
+    cdTimer = setInterval(() => {
+      rem--;
+      ringFill.style.strokeDashoffset = C * (1 - rem / COUNTDOWN_SEC);
+      cNum.textContent = rem > 0 ? rem : '';
+
+      if (cSec && rem > 0) {
+        cSec.textContent = `${rem} second${rem !== 1 ? 's' : ''}`;
       }
-    } catch (e) {
-      window.location.href = webLink;
+
+      if (rem <= 0) {
+        clearInterval(cdTimer); cdTimer = null;
+        unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn);
+      }
+    }, 1000);
+  }
+
+  function unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn) {
+    ringFill.classList.add('done');
+    cNum.textContent = '✓';
+    cNum.classList.add('done');
+    cLabel.innerHTML = '<strong style="color:var(--green)">✅ Your download is ready!</strong>';
+
+    dlBtn.disabled   = false;
+    dlBtn.className  = 'dl-btn unlocked';
+    dlBtn.innerHTML  = '📥 &nbsp;Download Now — Free';
+
+    if (dlBtn.animate) {
+      dlBtn.animate([
+        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
+        { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.6)' },
+        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
+      ], { duration: 550, iterations: 3, easing: 'ease-in-out' });
     }
+
+    dlBtn.addEventListener('click', () => handleDownload(dlBtn, fileId, title), { once: true });
   }
 
   /* ════════════════════════════════════════════
-     AD COOLDOWN + NATIVE OS FAIL-SAFE DOWNLOAD
+     HARDCODED NATIVE DOWNLOAD LOGIC
   ════════════════════════════════════════════ */
   let lastAdAt = 0;
-  const AD_COOLDOWN = 30_000; // 30 s
+  const AD_COOLDOWN = 30_000;
 
   function handleDownload(btn, fileId, title) {
     if (!fileId) { showToast('⚠️ File ID missing.'); return; }
 
     const now = Date.now();
     const canAd = (now - lastAdAt) >= AD_COOLDOWN;
-    
-    // 🔥 HARDCODED BOT USERNAME (No variable errors now!) 🔥
-    const cleanBot = 'GoogleBookxSearchBot';
-    
-    // NATIVE OS Deep Link (Bypasses all Telegram SDK bugs)
-    const tgUri = `tg://resolve?domain=${cleanBot}&start=webdl_${fileId}`;
-    const webUri = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
+    let opened = false;
 
-    // 1. NATIVE BUTTON REPLACEMENT
-    // Purane button ko hatakar sachha HTML link laga rahe hain.
+    // 🔥 100% Hardcoded URIs - No variables, no string replaces. 🔥
+    const webUri = `https://t.me/GoogleBookxSearchBot?start=webdl_${fileId}`;
+    const tgUri = `tg://resolve?domain=GoogleBookxSearchBot&start=webdl_${fileId}`;
+
+    // NATIVE OS FAIL-SAFE (Replaces the button entirely)
     const aBtn = document.createElement('a');
     aBtn.href = tgUri;
     aBtn.className = 'dl-btn unlocked';
@@ -1091,13 +967,11 @@
     aBtn.innerHTML = '🚀 &nbsp;Send to Telegram';
     btn.parentNode.replaceChild(aBtn, btn);
 
-    // 2. Auto-open logic (Runs naturally after Ad)
-    let opened = false;
     function triggerDownload() {
         if (opened) return;
         opened = true;
         try {
-            if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+            if (window.Telegram?.WebApp?.openTelegramLink) {
                 window.Telegram.WebApp.openTelegramLink(webUri);
             } else {
                 window.location.href = webUri;
@@ -1107,29 +981,17 @@
         }
     }
 
-    // 3. Ad Logic & Anti-Freeze Timer
     if (canAd && typeof show_11064455 === 'function') {
       lastAdAt = Date.now();
-      
-      // Agar Monetag hang ho jaye, toh 16s baad automatically trigger hoga
-      const safeTimer = setTimeout(triggerDownload, 16000);
-
+      const safeTimer = setTimeout(triggerDownload, 16000); 
       show_11064455()
         .then(() => { clearTimeout(safeTimer); triggerDownload(); })
         .catch(() => { clearTimeout(safeTimer); triggerDownload(); });
     } else {
-      // Agar Ad ka cooldown chal raha hai, toh instant drop
       triggerDownload();
     }
   }
 
-
-
-
-
-  /* ════════════════════════════════════════════
-     SYNOPSIS TOGGLE
-  ════════════════════════════════════════════ */
   function toggleSynopsis() {
     const el  = document.getElementById('synText');
     const btn = document.getElementById('readMoreBtn');
@@ -1139,9 +1001,6 @@
       ? 'Read more ▾' : 'Show less ▴';
   }
 
-  /* ════════════════════════════════════════════
-     TOAST
-  ════════════════════════════════════════════ */
   let toastT = null;
   function showToast(msg, ms = 3200) {
     const t = document.getElementById('toast');
@@ -1151,25 +1010,12 @@
     toastT = setTimeout(() => t.classList.remove('show'), ms);
   }
 
-  /* ════════════════════════════════════════════
-     HTML ESCAPE
-  ════════════════════════════════════════════ */
   function esc(str) {
     return String(str || '')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;')
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
       .replace(/'/g,'&#39;');
   }
-
-  /* ════════════════════════════════════════════
-     ALSO fix the api.py cover URL on the backend
-     ─────────────────────────────────────────
-     Add this to fetch_book_metadata() in api.py:
-       cover = cover.replace('http://','https://')
-       cover = re.sub(r'&zoom=\d+','',cover)
-     (Already in the api.py we wrote — just a reminder)
-  ════════════════════════════════════════════ */
-
   </script>
 </body>
 </html>
