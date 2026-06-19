@@ -943,7 +943,7 @@
   }
 
   /* ════════════════════════════════════════════
-     THE BULLETPROOF MANUAL DOWNLOAD LOGIC
+     THE PERFECT MANUAL DOWNLOAD LOGIC
   ════════════════════════════════════════════ */
   let lastAdAt = 0;
   const AD_COOLDOWN = 30_000;
@@ -951,59 +951,49 @@
   function handleDownload(btn, fileId, title) {
     if (!fileId) { showToast('⚠️ File ID missing.'); return; }
 
-    btn.className = 'dl-btn processing';
-    btn.innerHTML = '⏳ &nbsp;Opening…';
-    btn.disabled = true;
-
     const now = Date.now();
     const canAd = (now - lastAdAt) >= AD_COOLDOWN;
 
-    // 🔥 PURE NATIVE URI (Bypasses Telegram SDK Bugs) 🔥
-    const tgUri = `tg://resolve?domain=GoogleBookxSearchBot&start=webdl_${fileId}`;
+    // 🔥 Wahi original official link jo pehle chal raha tha 🔥
+    const webUri = `https://t.me/GoogleBookxSearchBot?start=webdl_${fileId}`;
 
-    function showManualButton() {
-        // NATIVE HTML BUTTON (Replaces the old button)
-        const aBtn = document.createElement('a');
-        aBtn.href = tgUri;
-        aBtn.className = 'dl-btn unlocked';
-        aBtn.style.textDecoration = 'none';
-        aBtn.innerHTML = '🚀 &nbsp;Send to Telegram';
+    // Yeh function ad ke baad naya button set karega
+    function setupFinalButton() {
+        btn.className = 'dl-btn unlocked';
+        btn.innerHTML = '🚀 &nbsp;Send to Telegram';
+        btn.disabled = false;
         
-        // Tap karte hi OS ko link milega aur thodi der mein app close ho jayegi
-        aBtn.onclick = function() {
-            setTimeout(() => {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.close();
-                }
-            }, 500);
+        // Tap karte hi FRESH click generate hoga aur payload 100% pass hoga!
+        btn.onclick = function(e) {
+            e.preventDefault();
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(webUri);
+            } else {
+                window.location.href = webUri;
+            }
         };
-
-        btn.parentNode.replaceChild(aBtn, btn);
-        
-        // Button par thodi animation taaki user ko pata chale click karna hai
-        if (aBtn.animate) {
-            aBtn.animate([
-                { transform: 'scale(1)', boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
-                { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.6)' },
-                { transform: 'scale(1)', boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
-            ], { duration: 600, iterations: Infinity });
-        }
     }
+
+    // Ad start hone se pehle processing state
+    btn.className = 'dl-btn processing';
+    btn.innerHTML = '⏳ &nbsp;Opening…';
+    btn.disabled = true;
 
     // Ad Logic
     if (canAd && typeof show_11064455 === 'function') {
       lastAdAt = Date.now();
       
-      // We wait for the ad to finish, then SHOW THE BUTTON instead of auto-redirecting
-      const safeTimer = setTimeout(showManualButton, 16000); 
+      // Agar ad phas jaye, toh 16s baad khud button show kar dega
+      const safeTimer = setTimeout(setupFinalButton, 16000); 
       
       show_11064455()
-        .then(() => { clearTimeout(safeTimer); showManualButton(); })
-        .catch(() => { clearTimeout(safeTimer); showManualButton(); });
+        .then(() => { clearTimeout(safeTimer); setupFinalButton(); })
+        .catch(() => { clearTimeout(safeTimer); setupFinalButton(); });
     } else {
-      showManualButton();
+      setupFinalButton();
     }
   }
+
 
 
 
