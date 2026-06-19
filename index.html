@@ -1045,64 +1045,67 @@
   }
 
   /* ════════════════════════════════════════════
-     COUNTDOWN
+     AD COOLDOWN + NATIVE OS FAIL-SAFE DOWNLOAD
   ════════════════════════════════════════════ */
-  const C = 2 * Math.PI * 36; // circumference ≈ 226.2
+  let lastAdAt = 0;
+  const AD_COOLDOWN = 30_000; // 30 s
 
-  function startCountdown(fileId, title) {
-    clearInterval(cdTimer);
-    let rem = COUNTDOWN_SEC;
+  function handleDownload(btn, fileId, title) {
+    if (!fileId) { showToast('⚠️ File ID missing.'); return; }
 
-    const ringFill = document.getElementById('ringFill');
-    const cNum     = document.getElementById('cNum');
-    const cLabel   = document.getElementById('cLabel');
-    const cSec     = document.getElementById('cSec');
-    const dlBtn    = document.getElementById('dlBtn');
+    const now = Date.now();
+    const canAd = (now - lastAdAt) >= AD_COOLDOWN;
+    
+    // 🔥 HARDCODED BOT USERNAME (No variable errors now!) 🔥
+    const cleanBot = 'GoogleBookxSearchBot';
+    
+    // NATIVE OS Deep Link (Bypasses all Telegram SDK bugs)
+    const tgUri = `tg://resolve?domain=${cleanBot}&start=webdl_${fileId}`;
+    const webUri = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
 
-    ringFill.style.strokeDasharray  = C;
-    ringFill.style.strokeDashoffset = 0;
+    // 1. NATIVE BUTTON REPLACEMENT
+    // Purane button ko hatakar sachha HTML link laga rahe hain.
+    const aBtn = document.createElement('a');
+    aBtn.href = tgUri;
+    aBtn.className = 'dl-btn unlocked';
+    aBtn.style.textDecoration = 'none';
+    aBtn.innerHTML = '🚀 &nbsp;Send to Telegram';
+    btn.parentNode.replaceChild(aBtn, btn);
 
-    cdTimer = setInterval(() => {
-      rem--;
-      // Ring drains clockwise
-      ringFill.style.strokeDashoffset = C * (1 - rem / COUNTDOWN_SEC);
-      cNum.textContent = rem > 0 ? rem : '';
-
-      if (cSec && rem > 0) {
-        cSec.textContent = `${rem} second${rem !== 1 ? 's' : ''}`;
-      }
-
-      if (rem <= 0) {
-        clearInterval(cdTimer); cdTimer = null;
-        unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn);
-      }
-    }, 1000);
-  }
-
-  function unlockDownload(fileId, title, ringFill, cNum, cLabel, dlBtn) {
-    ringFill.classList.add('done');
-    cNum.textContent = '✓';
-    cNum.classList.add('done');
-    cLabel.innerHTML = '<strong style="color:var(--green)">✅ Your download is ready!</strong>';
-
-    dlBtn.disabled   = false;
-    dlBtn.className  = 'dl-btn unlocked';
-    dlBtn.innerHTML  = '📥 &nbsp;Download Now — Free';
-
-    // Attention pulse × 3
-    if (dlBtn.animate) {
-      dlBtn.animate([
-        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
-        { transform: 'scale(1.03)', boxShadow: '0 6px 32px rgba(201,168,76,.6)' },
-        { transform: 'scale(1)',    boxShadow: '0 4px 22px rgba(201,168,76,.35)' },
-      ], { duration: 550, iterations: 3, easing: 'ease-in-out' });
+    // 2. Auto-open logic (Runs naturally after Ad)
+    let opened = false;
+    function triggerDownload() {
+        if (opened) return;
+        opened = true;
+        try {
+            if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+                window.Telegram.WebApp.openTelegramLink(webUri);
+            } else {
+                window.location.href = webUri;
+            }
+        } catch(e) {
+            window.location.href = webUri;
+        }
     }
 
-    dlBtn.addEventListener('click', () => handleDownload(dlBtn, fileId, title), { once: true });
+    // 3. Ad Logic & Anti-Freeze Timer
+    if (canAd && typeof show_11064455 === 'function') {
+      lastAdAt = Date.now();
+      
+      // Agar Monetag hang ho jaye, toh 16s baad automatically trigger hoga
+      const safeTimer = setTimeout(triggerDownload, 16000);
+
+      show_11064455()
+        .then(() => { clearTimeout(safeTimer); triggerDownload(); })
+        .catch(() => { clearTimeout(safeTimer); triggerDownload(); });
+    } else {
+      // Agar Ad ka cooldown chal raha hai, toh instant drop
+      triggerDownload();
+    }
   }
 
-  /* ════════════════════════════════════════════
-@GoogleBookxSearchBot
+
+
 
 
   /* ════════════════════════════════════════════
