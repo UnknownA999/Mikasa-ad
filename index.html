@@ -999,30 +999,6 @@
   }
 
 
-    function triggerDownload() {
-        if (opened) return;
-        opened = true;
-        try {
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-                window.Telegram.WebApp.openTelegramLink(webUri);
-            } else {
-                window.location.href = webUri;
-            }
-        } catch(e) {
-            window.location.href = webUri;
-        }
-    }
-
-    if (canAd && typeof show_11064455 === 'function') {
-      lastAdAt = Date.now();
-      const safeTimer = setTimeout(triggerDownload, 16000); 
-      show_11064455()
-        .then(() => { clearTimeout(safeTimer); triggerDownload(); })
-        .catch(() => { clearTimeout(safeTimer); triggerDownload(); });
-    } else {
-      triggerDownload();
-    }
-  }
 
   function toggleSynopsis() {
     const el  = document.getElementById('synText');
