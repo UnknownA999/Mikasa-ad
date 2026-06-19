@@ -1044,6 +1044,25 @@
     startCountdown(fileId, title);
   }
 
+
+  /* ════════════════════════════════════════════
+     DEEP LINK — The Official & Safe Method
+  ════════════════════════════════════════════ */
+  function openBotLink(fileId) {
+    const cleanBot = GoogleBookxSearchBot.replace('@', '').trim();
+    const webLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
+
+    try {
+      if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+        window.Telegram.WebApp.openTelegramLink(webLink);
+      } else {
+        window.location.href = webLink;
+      }
+    } catch (e) {
+      window.location.href = webLink;
+    }
+  }
+
   /* ════════════════════════════════════════════
      AD COOLDOWN + NATIVE OS FAIL-SAFE DOWNLOAD
   ════════════════════════════════════════════ */
