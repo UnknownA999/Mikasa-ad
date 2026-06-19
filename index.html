@@ -1102,69 +1102,7 @@
   }
 
   /* ════════════════════════════════════════════
-     DEEP LINK — The Official & Safe Method
-  ════════════════════════════════════════════ */
-  function openBotLink(fileId) {
-    const cleanBot = BOT_USERNAME.replace('@', '').trim();
-    const webLink = `https://t.me/${cleanBot}?start=webdl_${fileId}`;
-
-    try {
-      if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
-        window.Telegram.WebApp.openTelegramLink(webLink);
-      } else {
-        window.location.href = webLink;
-      }
-    } catch (e) {
-      window.location.href = webLink;
-    }
-  }
-
-  /* ════════════════════════════════════════════
-     AD COOLDOWN + ANTI-FREEZE DOWNLOAD
-  ════════════════════════════════════════════ */
-  let lastAdAt = 0;
-  const AD_COOLDOWN = 30_000; // 30 s
-
-  function handleDownload(btn, fileId, title) {
-    if (!fileId) { showToast('⚠️ File ID missing.'); return; }
-
-    const now = Date.now();
-    const canAd = (now - lastAdAt) >= AD_COOLDOWN;
-
-    // 1. Immediately change the button to a manual fallback
-    // Agar Monetag freeze hota hai, toh user ispe click karke direct bot open kar sakta hai!
-    btn.className = 'dl-btn unlocked';
-    btn.innerHTML = '🚀 &nbsp;Send to Telegram';
-    btn.disabled = false;
-    btn.onclick = function() {
-        openBotLink(fileId);
-    };
-
-    // 2. Auto-open logic
-    let opened = false;
-    function triggerDownload() {
-        if (opened) return;
-        opened = true;
-        openBotLink(fileId);
-    }
-
-    // 3. Show Ad & setup Anti-Freeze Timer
-    if (canAd && typeof show_11064455 === 'function') {
-      lastAdAt = Date.now();
-      
-      // ANTI-FREEZE: Ad 15 seconds ka hai. Agar Monetag freeze ho jaye, 
-      // toh yeh timer exactly 16.5 seconds baad automatically redirect kar dega.
-      setTimeout(triggerDownload, 16500);
-
-      show_11064455()
-        .then(triggerDownload)
-        .catch(triggerDownload);
-    } else {
-      // Agar ad ka cooldown chal raha hai, toh bina ruke redirect karo
-      triggerDownload();
-    }
-  }
-
+@GoogleBookxSearchBot
 
 
   /* ════════════════════════════════════════════
