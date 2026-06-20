@@ -642,17 +642,29 @@
   } catch(e) {}
 
   function fixCoverUrl(url, isbn, title) {
-    if (url) {
+    // 1. Agar original URL hai toh usko theek karo
+    if (url && url !== 'null' && url !== 'undefined') {
       url = url.replace(/^http:\/\//i, 'https://');
       url = url.replace(/&zoom=\d+/g, '').replace(/\?zoom=\d+&?/g, '?').replace(/\?$/, '');
       url = url.replace('zoom=1', 'zoom=0');
       return url;
     }
-    if (isbn) return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-    if (title) {
-      const q = encodeURIComponent(title.replace(/\s+/g, '+'));
-      return `https://covers.openlibrary.org/b/title/${q}-M.jpg`;
+    
+    // 2. Agar ISBN hai, toh OpenLibrary try karo (default=false se agar cover na ho toh error aayega)
+    if (isbn && isbn !== 'null') {
+      return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
     }
+    
+    // 3. 🌟 PREMIUM FALLBACK: Agar kuch na mile, toh Title ke initials se mast custom cover banao!
+    if (title && title !== 'null') {
+      // Title ko clean karke pehle 3 letters nikalte hain
+      const cleanTitle = title.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+      const q = encodeURIComponent(cleanTitle);
+      
+      // UI-Avatars API: Tumhari theme (Background: #22263A, Text: #C9A84C) ke hisaab se auto-cover generate karega
+      return `https://ui-avatars.com/api/?name=${q}&background=22263A&color=C9A84C&size=400&font-size=0.3&length=2&bold=true`;
+    }
+    
     return '';
   }
 
