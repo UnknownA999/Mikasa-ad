@@ -967,12 +967,17 @@
         btn.onclick = function(e) {
             e.preventDefault();
             if (window.Telegram && window.Telegram.WebApp) {
+                // 1. Pehle chat open karo
                 window.Telegram.WebApp.openTelegramLink(webUri);
+                
+                // 2. 👇 YEH LINE ADD KI HAI: 0.2 second baad app ko automatically gira do! 👇
+                setTimeout(() => { window.Telegram.WebApp.close(); }, 200);
             } else {
                 window.location.href = webUri;
             }
         };
     }
+
 
     // Ad start hone se pehle processing state
     btn.className = 'dl-btn processing';
